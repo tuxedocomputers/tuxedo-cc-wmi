@@ -8,7 +8,7 @@
 #include <linux/cdev.h>
 #include <linux/uaccess.h>
 #include "clevo_wmi.h"
-#include "tuxedo_ioctl.h"
+#include "tuxedo_wmi_ioctl.h"
 
 MODULE_LICENSE("GPL");
 
@@ -37,7 +37,7 @@ static ssize_t fop_write(struct file *file, const char __user *buf, size_t len, 
 static long fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
     u32 result = 0;
-    u32 argument;
+    u32 argument = (u32) arg;
     switch (cmd) {
         case R_FANINFO_CPU:
             result = clevo_wmi_evaluate(CLEVO_WMI_CMD_GET_FANINFO_CPU, 0);
@@ -70,9 +70,17 @@ static long fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
             printk(KERN_INFO "W_FANSPEED\n");
             printk(KERN_INFO "speed param: %ld\n", arg);
             // copy_from_user(&local_argument, (int32_t *) arg, sizeof(local_argument));
-            argument = (u32) arg;
             printk(KERN_INFO "speed copy: %d\n", argument);
             clevo_wmi_evaluate(CLEVO_WMI_CMD_SET_FANSPEED_VALUE, argument);
+            break;
+        case W_WEBCAM_SW:
+            clevo_wmi_evaluate(CLEVO_WMI_CMD_SET_WEBCAM_SW, argument);
+            break;
+        case W_FLIGHTMODE_SW:
+            clevo_wmi_evaluate(CLEVO_WMI_CMD_SET_FLIGHTMODE_SW, argument);
+            break;
+        case W_TOUCHPAD_SW:
+            clevo_wmi_evaluate(CLEVO_WMI_CMD_SET_TOUCHPAD_SW, argument);
             break;
     }
     return 0;

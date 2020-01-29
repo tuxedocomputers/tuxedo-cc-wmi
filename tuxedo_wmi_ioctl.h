@@ -17,5 +17,10 @@
 
 // Write defines
 #define W_FANSPEED      _IOW(MAGIC_WRITE, 0x01, int32_t*)
+#define W_FANAUTO       _IOW(MAGIC_WRITE, 0x02, int32_t*)
+
+#define W_WEBCAM_SW     _IOW(MAGIC_WRITE, 0x03, int32_t*)
+#define W_FLIGHTMODE_SW _IOW(MAGIC_WRITE, 0x04, int32_t*)
+#define W_TOUCHPAD_SW   _IOW(MAGIC_WRITE, 0x05, int32_t*)
 
 #endif
