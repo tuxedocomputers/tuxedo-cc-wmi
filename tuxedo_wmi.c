@@ -10,9 +10,12 @@
 #include "clevo_wmi.h"
 #include "tuxedo_wmi_ioctl.h"
 
+MODULE_DESCRIPTION("WMI control for TUXEDO laptops");
+MODULE_AUTHOR("TUXEDO Computers <tux@tuxedocomputers.com>");
+MODULE_VERSION("1.0.0");
 MODULE_LICENSE("GPL");
 
-static int fop_open(struct inode *inode, struct file *file)
+/*static int fop_open(struct inode *inode, struct file *file)
 {
     return 0;
 }
@@ -20,7 +23,7 @@ static int fop_open(struct inode *inode, struct file *file)
 static int fop_release(struct inode *inode, struct file *file)
 {
     return 0;
-}
+}*/
 
 static long fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
@@ -77,9 +80,9 @@ static long fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 
 static struct file_operations fops_dev = {
     .owner              = THIS_MODULE,
-    .open               = fop_open,
-    .unlocked_ioctl     = fop_ioctl,
-    .release            = fop_release,
+    .unlocked_ioctl     = fop_ioctl
+//    .open               = fop_open,
+//    .release            = fop_release
 };
 
 struct class *tuxedo_wmi_device_class;
@@ -98,9 +101,9 @@ static int __init tuxedo_wmi_init(void)
             return err;
         }
         cdev_init(&tuxedo_wmi_cdev, &fops_dev);
-        if ((cdev_add(&tuxedo_wmi_cdev, tuxedo_wmi_device_handle, 1)) < 0) {
+        err = (cdev_add(&tuxedo_wmi_cdev, tuxedo_wmi_device_handle, 1));
+        if (err < 0) {
             pr_err("Failed to add cdev\n");
-            cdev_del(&tuxedo_wmi_cdev);
             unregister_chrdev_region(tuxedo_wmi_device_handle, 1);
         }
         tuxedo_wmi_device_class = class_create(THIS_MODULE, "tuxedo_wmi");
