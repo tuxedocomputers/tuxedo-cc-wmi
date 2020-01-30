@@ -94,6 +94,8 @@ static int __init tuxedo_wmi_init(void)
 {
     int err;
 
+    // Only initialize if WMI GUID exists
+    // This is not hotpluggable so can be done in module init
     if (wmi_has_guid(CLEVO_WMI_METHOD_GUID)) {
         err = alloc_chrdev_region(&tuxedo_wmi_device_handle, 0, 1, "tuxedo_wmi_cdev");
         if (err != 0) {
