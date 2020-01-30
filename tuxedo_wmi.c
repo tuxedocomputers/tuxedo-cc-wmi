@@ -38,6 +38,7 @@ static long fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
     u32 result = 0;
     u32 argument = (u32) arg;
+
     switch (cmd) {
         case R_FANINFO_CPU:
             result = clevo_wmi_evaluate(CLEVO_WMI_CMD_GET_FANINFO_CPU, 0);
@@ -95,34 +96,26 @@ static struct file_operations fops_dev = {
     .release            = fop_release,
 };
 
-/*static void test_wmi_notify(u32 value, void *context)
-{
-    printk(KERN_INFO "WMI notification: %d", value);
-}*/
+struct class *tuxedo_wmi_device_class;
+dev_t tuxedo_wmi_device_handle;
 
-struct class *device_class;
-dev_t device_handle;
+static struct cdev tuxedo_wmi_cdev;
 
-static struct cdev wmi_driver_cdev;
-
-static int __init wmi_driver_init(void)
+static int __init tuxedo_wmi_init(void)
 {
     int err;
 
-    err = alloc_chrdev_region(&device_handle, 0, 1, "wmi_driver_cdev");
+    err = alloc_chrdev_region(&tuxedo_wmi_device_handle, 0, 1, "tuxedo_wmi_cdev");
     if (err != 0) {
         printk(KERN_INFO "Failed to allocate chrdev region\n");
         return err;
     }
-    cdev_init(&wmi_driver_cdev, &fops_dev);
-    if ((cdev_add(&wmi_driver_cdev, device_handle, 1)) < 0) {
+    cdev_init(&tuxedo_wmi_cdev, &fops_dev);
+    if ((cdev_add(&tuxedo_wmi_cdev, tuxedo_wmi_device_handle, 1)) < 0) {
         printk(KERN_INFO "Failed to add cdev\n");
     }
-    device_class = class_create(THIS_MODULE, "wmi_driver_class");
-    device_create(device_class, NULL, device_handle, NULL, "wmi_driver_dev");
-
-
-    // acpi_status status;
+    tuxedo_wmi_device_class = class_create(THIS_MODULE, "tuxedo_wmi");
+    device_create(tuxedo_wmi_device_class, NULL, tuxedo_wmi_device_handle, NULL, "tuxedo_wmi");
 
     printk(KERN_INFO "WMI Module init.\n");
     if (!wmi_has_guid(CLEVO_WMI_METHOD_GUID)) {
@@ -130,82 +123,17 @@ static int __init wmi_driver_init(void)
         return -ENODEV;
     }
     
-    /*status = wmi_install_notify_handler(GUID, test_wmi_notify, NULL);
-    if (ACPI_FAILURE(status)) {
-        printk(KERN_INFO "Failure installing notify handler");
-        return -ENODEV;
-    }*/
-
     return 0;
 }
 
-static void __exit wmi_driver_exit(void)
+static void __exit tuxedo_wmi_exit(void)
 {
-    device_destroy(device_class, device_handle);
-    class_destroy(device_class);
-    cdev_del(&wmi_driver_cdev);
-    unregister_chrdev_region(device_handle, 1);
+    device_destroy(tuxedo_wmi_device_class, tuxedo_wmi_device_handle);
+    class_destroy(tuxedo_wmi_device_class);
+    cdev_del(&tuxedo_wmi_cdev);
+    unregister_chrdev_region(tuxedo_wmi_device_handle, 1);
     printk(KERN_INFO "WMI Module exit.\n");
-    // wmi_remove_notify_handler(GUID);
 }
 
-int param_int = 0;
-
-static int set_param_int(const char *val, const struct kernel_param *kp)
-{
-    int value = 0;
-    int result;
-
-    result = kstrtoint(val, 10, &value);
-    if (result != 0 || value < 0 || value > 255) {
-        return -EINVAL;
-    }
-
-    return param_set_int(val, kp);
-}
-
-static int get_param_int(char *buffer, const struct kernel_param *kp)
-{
-    u32 wmi_cmd = 0x79;
-    u32 wmi_sub_cmd = 0x0f;
-    u32 wmi_sub_arg = param_int & 0x01;
-    u32 wmi_arg = (wmi_sub_cmd << 0x18) | (wmi_sub_arg && 0x00ffffff);
-
-    struct wmi_args {
-        u32 arg2;
-    };
-    struct wmi_args arg = {
-        .arg2 = wmi_arg
-    };
-    struct acpi_buffer in = { (acpi_size) sizeof(arg), &arg};
-    struct acpi_buffer out = { ACPI_ALLOCATE_BUFFER, NULL };
-    
-    acpi_status status;
-    union acpi_object *out_acpi;
-    u32 e_result;
-    status = wmi_evaluate_method(CLEVO_WMI_METHOD_GUID, 0, wmi_cmd, &in, &out);
-    out_acpi = (union acpi_object *)out.pointer;
-    if (out_acpi && out_acpi->type == ACPI_TYPE_INTEGER) {
-        e_result = (u32) out_acpi->integer.value;
-        printk(KERN_INFO "Result: %d\n", e_result);
-    }
-    if (ACPI_FAILURE(status)) {
-        printk(KERN_INFO "Error evaluating method\n");
-    }
-
-    kfree(out_acpi);
-
-    printk(KERN_INFO "p_int = %d\n", param_int);
-    return param_get_int(buffer, kp);
-}
-
-static const struct kernel_param_ops param_ops = {
-    .set    = set_param_int,
-    .get    = get_param_int
-};
-
-module_param_cb(p_int, &param_ops, &param_int, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
-MODULE_PARM_DESC(p_int, "Integer sample parameter");
-
-module_init(wmi_driver_init);
-module_exit(wmi_driver_exit);
+module_init(tuxedo_wmi_init);
+module_exit(tuxedo_wmi_exit);
