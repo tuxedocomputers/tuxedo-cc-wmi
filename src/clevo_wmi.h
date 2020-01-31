@@ -4,9 +4,10 @@
 #define CLEVO_WMI_METHOD_GUID               "ABBC0F6D-8EA1-11D1-00A0-C90629100000"
 
 // The clevo get commands expect no parameters
-#define CLEVO_WMI_CMD_GET_FANINFO_CPU       0x63
-#define CLEVO_WMI_CMD_GET_FANINFO_GPU1      0x64
-#define CLEVO_WMI_CMD_GET_FANINFO_GPU2      0x6e
+#define CLEVO_WMI_CMD_GET_FANINFO1          0x63
+#define CLEVO_WMI_CMD_GET_FANINFO2          0x64
+#define CLEVO_WMI_CMD_GET_FANINFO3          0x6e
+#define CLEVO_WMI_CMD_GET_FANINFO4          0x6f
 
 #define CLEVO_WMI_CMD_GET_WEBCAM_SW         0x06
 #define CLEVO_WMI_CMD_GET_FLIGHTMODE_SW     0x07

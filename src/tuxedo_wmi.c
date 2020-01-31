@@ -31,16 +31,20 @@ static long fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
     u32 argument = (u32) arg;
 
     switch (cmd) {
-        case R_FANINFO_CPU:
-            result = clevo_wmi_evaluate(CLEVO_WMI_CMD_GET_FANINFO_CPU, 0);
+        case R_FANINFO1:
+            result = clevo_wmi_evaluate(CLEVO_WMI_CMD_GET_FANINFO1, 0);
             copy_to_user((int32_t *) arg, &result, sizeof(result));
             break;
-        case R_FANINFO_GPU1:
-            result = clevo_wmi_evaluate(CLEVO_WMI_CMD_GET_FANINFO_GPU1, 0);
+        case R_FANINFO2:
+            result = clevo_wmi_evaluate(CLEVO_WMI_CMD_GET_FANINFO2, 0);
             copy_to_user((int32_t *) arg, &result, sizeof(result));
             break;
-        case R_FANINFO_GPU2:
-            result = clevo_wmi_evaluate(CLEVO_WMI_CMD_GET_FANINFO_GPU2, 0);
+        case R_FANINFO3:
+            result = clevo_wmi_evaluate(CLEVO_WMI_CMD_GET_FANINFO3, 0);
+            copy_to_user((int32_t *) arg, &result, sizeof(result));
+            break;
+        case R_FANINFO4:
+            result = clevo_wmi_evaluate(CLEVO_WMI_CMD_GET_FANINFO4, 0);
             copy_to_user((int32_t *) arg, &result, sizeof(result));
             break;
         case R_WEBCAM_SW:
