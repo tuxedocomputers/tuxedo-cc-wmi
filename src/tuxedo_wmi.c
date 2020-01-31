@@ -29,6 +29,7 @@ static long fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
     u32 result = 0;
     u32 argument = (u32) arg;
+    copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
 
     switch (cmd) {
         case R_FANINFO1:
@@ -68,6 +69,9 @@ static long fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
             // copy_from_user(&local_argument, (int32_t *) arg, sizeof(local_argument));
             pr_info("speed copy: %d\n", argument);
             clevo_wmi_evaluate(CLEVO_WMI_CMD_SET_FANSPEED_VALUE, argument);
+            break;
+        case W_FANAUTO:
+            clevo_wmi_evaluate(CLEVO_WMI_CMD_SET_FANSPEED_AUTO, argument);
             break;
         case W_WEBCAM_SW:
             clevo_wmi_evaluate(CLEVO_WMI_CMD_SET_WEBCAM_SW, argument);
