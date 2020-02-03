@@ -64,10 +64,6 @@ static long fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 
     switch (cmd) {
         case W_FANSPEED:
-            pr_info("W_FANSPEED\n");
-            pr_info("speed param: %ld\n", arg);
-            // copy_from_user(&local_argument, (int32_t *) arg, sizeof(local_argument));
-            pr_info("speed copy: %d\n", argument);
             clevo_wmi_evaluate(CLEVO_WMI_CMD_SET_FANSPEED_VALUE, argument);
             break;
         case W_FANAUTO:
