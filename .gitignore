@@ -9,4 +9,4 @@
 *.symvers
 *.order
 *.deb
-build/
+package_build/
