@@ -12,7 +12,7 @@
 
 MODULE_DESCRIPTION("WMI control for TUXEDO laptops");
 MODULE_AUTHOR("TUXEDO Computers <tux@tuxedocomputers.com>");
-MODULE_VERSION("1.0.0");
+MODULE_VERSION("0.1.0");
 MODULE_LICENSE("GPL");
 
 /*static int fop_open(struct inode *inode, struct file *file)
