@@ -44,10 +44,10 @@ static long fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
             result = clevo_wmi_evaluate(CLEVO_WMI_CMD_GET_FANINFO3, 0);
             copy_to_user((int32_t *) arg, &result, sizeof(result));
             break;
-        case R_FANINFO4:
+        /*case R_FANINFO4:
             result = clevo_wmi_evaluate(CLEVO_WMI_CMD_GET_FANINFO4, 0);
             copy_to_user((int32_t *) arg, &result, sizeof(result));
-            break;
+            break;*/
         case R_WEBCAM_SW:
             result = clevo_wmi_evaluate(CLEVO_WMI_CMD_GET_WEBCAM_SW, 0);
             copy_to_user((int32_t *) arg, &result, sizeof(result));
