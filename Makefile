@@ -17,7 +17,6 @@ clean:
 PACKAGE_BUILD_DIR := package_build/
 
 package:
-	make clean
 	mkdir $(PACKAGE_BUILD_DIR) || true
 	cp -rf dkms.conf $(PACKAGE_BUILD_DIR)
 	cp -rf Makefile $(PACKAGE_BUILD_DIR)
