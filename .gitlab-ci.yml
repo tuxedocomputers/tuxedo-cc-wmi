@@ -16,6 +16,8 @@ packaging:
   only:
     refs:
       - master
+    changes:
+      - dkms.conf
   script:
     - make package
     - mkdir $PACKAGES_FOLDER_NAME
