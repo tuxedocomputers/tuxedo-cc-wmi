@@ -55,7 +55,6 @@ rm -rf %{buildroot}
 %attr(0755,root,root) /usr/src/%{module}-%{version}/src/
 %attr(0644,root,root) /usr/src/%{module}-%{version}/src/*
 %license LICENSE
-%doc README.txt
 
 %post
 occurrences=/usr/sbin/dkms status | grep "%{module}" | grep "%{version}" | wc -l
