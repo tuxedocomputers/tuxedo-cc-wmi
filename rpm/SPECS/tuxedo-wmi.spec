@@ -20,7 +20,7 @@
 
 Summary:        interface to WMI methods/control on TUXEDO Laptops
 Name:           %{module}
-Version:        1.0.0
+Version:        2.0.0
 Release:        0
 License:        GPL-3.0+
 Group:          Hardware/Other
