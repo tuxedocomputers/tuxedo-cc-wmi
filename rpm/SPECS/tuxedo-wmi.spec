@@ -21,7 +21,7 @@
 Summary:        interface to WMI methods/control on TUXEDO Laptops
 Name:           %{module}
 Version:        2.0.0
-Release:        0
+Release:        1
 License:        GPL-3.0+
 Group:          Hardware/Other
 BuildArch:      noarch
@@ -64,7 +64,7 @@ then
 fi
 /usr/sbin/dkms build -m %{module} -v %{version}
 /usr/sbin/dkms install -m %{module} -v %{version}
-/usr/sbin/rmmod tuxedo_wmi
+/usr/sbin/rmmod -s tuxedo_wmi
 /usr/sbin/modprobe tuxedo_wmi
 exit 0
 
