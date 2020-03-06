@@ -16,7 +16,7 @@ case "$1" in
                 fi
                 /usr/sbin/dkms build -m ${module} -v ${version}
                 /usr/sbin/dkms install -m ${module} -v ${version}
-                /sbin/rmmod -s tuxedo_wmi
+                /sbin/rmmod -s tuxedo_wmi || true
                 /sbin/modprobe tuxedo_wmi
                 exit 0
 	;;
