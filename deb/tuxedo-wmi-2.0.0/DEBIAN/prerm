@@ -1,0 +1,29 @@
+#!/bin/sh
+
+module=tuxedo_wmi
+version=2.0.0
+
+set -e
+
+case "$1" in
+    remove|upgrade|deconfigure)
+        if [  "`dkms status -m $module`" ]
+       	then
+            dkms remove -m $module -v $version --all
+        fi
+    ;;
+
+    failed-upgrade)
+    ;;
+
+    *)
+        echo "prerm called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
+
+
+
+exit 0
+
+

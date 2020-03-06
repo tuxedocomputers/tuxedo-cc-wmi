@@ -1,0 +1,33 @@
+#!/bin/sh
+# Copyright (C) 2020 TUXEDO Computers
+
+set -e
+
+module=tuxedo-wmi
+version=2.0.0
+
+case "$1" in
+        configure)
+
+                occurrences=/usr/sbin/dkms status | grep "$module" | grep "$version" | wc -l
+		if ( ! occurrences > 0 )
+                then
+                    /usr/sbin/dkms add -m $module -v $version
+                fi
+                /usr/sbin/dkms build -m $module -v $version
+                /usr/sbin/dkms install -m $module -v $version
+                /usr/sbin/rmmod tuxedo_wmi
+                /usr/sbin/modprobe tuxedo_wmi
+                exit 0
+	;;
+
+	abort-upgrade|abort-remove|abort-deconfigure)
+	;;
+
+	*)
+		echo "postinst called with unknown argument \`$1'" >&2
+		exit 1
+	;;
+esac
+
+exit 0
