@@ -1,6 +1,6 @@
 #!/bin/sh
 
-module=tuxedo_wmi
+module=tuxedo-wmi
 version=2.0.0
 
 set -e
