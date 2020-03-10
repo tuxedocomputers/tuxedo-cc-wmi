@@ -16,6 +16,7 @@ packaging:
   only:
     refs:
       - master
+      - development
     changes:
       - dkms.conf
   script:
