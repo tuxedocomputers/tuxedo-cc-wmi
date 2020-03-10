@@ -4,7 +4,7 @@
 set -e
 
 module=tuxedo-wmi
-version=2.0.0
+version=x.x.x
 
 case "$1" in
         configure)
