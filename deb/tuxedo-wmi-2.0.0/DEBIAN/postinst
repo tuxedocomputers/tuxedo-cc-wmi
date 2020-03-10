@@ -9,15 +9,15 @@ version=2.0.0
 case "$1" in
         configure)
 
-                occurrences=/usr/sbin/dkms status | grep "$module" | grep "$version" | wc -l
-		if ( ! occurrences > 0 )
+		occurrences=$( /usr/sbin/dkms status | grep ${module} | grep ${version} | wc -l )
+		if [ ! "$occurrences" > 0 ];
                 then
-                    /usr/sbin/dkms add -m $module -v $version
+                    /usr/sbin/dkms add -m ${module} -v ${version};
                 fi
-                /usr/sbin/dkms build -m $module -v $version
-                /usr/sbin/dkms install -m $module -v $version
-                /usr/sbin/rmmod tuxedo_wmi
-                /usr/sbin/modprobe tuxedo_wmi
+                /usr/sbin/dkms build -m ${module} -v ${version}
+                /usr/sbin/dkms install -m ${module} -v ${version}
+                /sbin/rmmod -s tuxedo_wmi || true
+                /sbin/modprobe tuxedo_wmi
                 exit 0
 	;;
 
