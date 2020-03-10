@@ -10,6 +10,7 @@ case "$1" in
         if [  "`dkms status -m $module`" ]
        	then
             dkms remove -m $module -v $version --all
+            rmmod -s tuxedo_wmi || true
         fi
     ;;
 
