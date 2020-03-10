@@ -31,4 +31,5 @@ package-deb:
 	cp -rf dkms.conf $(DEB_PACKAGE_SRC)
 	cp -rf Makefile $(DEB_PACKAGE_SRC)
 	cp -rf src $(DEB_PACKAGE_SRC)
+	chmod -R 755 $(DEB_PACKAGE_CTRL)
 	dpkg-deb --root-owner-group -b $(DEB_PACKAGE_BASE) tuxedo-wmi-$(VER).deb
