@@ -6,7 +6,7 @@ variables:
 
 before_script:
   - apt-get update -qq
-  - apt-get install -qq -y dkms debhelper > /dev/null 2>&1
+  - apt-get install -qq -y dpkg > /dev/null 2>&1
 
 stages:
   - build
@@ -16,6 +16,7 @@ packaging:
   only:
     refs:
       - master
+      - development
     changes:
       - dkms.conf
   script:
