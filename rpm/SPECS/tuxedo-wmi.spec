@@ -69,7 +69,9 @@ fi
 exit 0
 
 %preun
-/usr/sbin/rmmod tuxedo_wmi
+if [ $1 != 1 ];then
+    /usr/sbin/rmmod tuxedo_wmi
+fi
 /usr/sbin/dkms remove -m %{module} -v %{version} --all
 exit 0
 
