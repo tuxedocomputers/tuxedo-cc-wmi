@@ -20,13 +20,15 @@ DEB_PACKAGE_SRC := $(DEB_PACKAGE_BASE)/usr/src/tuxedo-wmi-$(VER)/
 DEB_PACKAGE_CTRL := $(DEB_PACKAGE_BASE)/DEBIAN
 
 package: package-deb package-rpm
+package-clean: package-deb-clean package-rpm-clean
 
 package-deb:
-	# Rename or complete folder structure according to current version
-	mv deb/tuxedo-wmi-* $(DEB_PACKAGE_BASE) || true
+	# Create/complete folder structure according to current version
+	rm -rf $(DEB_PACKAGE_BASE)
+	cp -rf deb/tuxedo-wmi $(DEB_PACKAGE_BASE)
+	rm -rf $(DEB_PACKAGE_BASE)/usr/src
 	mkdir $(DEB_PACKAGE_BASE)/usr/src || true
 	mkdir $(DEB_PACKAGE_SRC) || true
-	mv $(DEB_PACKAGE_BASE)/usr/src/tuxedo-wmi-* $(DEB_PACKAGE_SRC) || true
 	# Replace version numbers in control/script files
 	sed -i 's/^Version:[^\n]*/Version: $(VER)/g' $(DEB_PACKAGE_CTRL)/control
 	sed -i 's/^version=[^\n]*/version=$(VER)/g' $(DEB_PACKAGE_CTRL)/postinst
@@ -40,6 +42,9 @@ package-deb:
 	# Make deb package
 	dpkg-deb --root-owner-group -b $(DEB_PACKAGE_BASE) tuxedo-wmi-$(VER).deb
 
+package-deb-clean:
+	rm -rf deb/tuxedo-wmi-*
+	rm *.deb || true
 
 RPM_PACKAGE_SRC := rpm/SOURCES/tuxedo-wmi-$(VER)
 RELEASE := 0
@@ -65,6 +70,7 @@ package-rpm:
 	cp rpm/RPMS/noarch/*.rpm .
 
 package-rpm-clean:
+	git checkout rpm/SPECS
 	rm -rf rpm/BUILD || true
 	rm -rf rpm/SOURCES || true
 	rm -rf rpm/RPMS || true
