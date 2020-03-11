@@ -6,7 +6,7 @@ variables:
 
 before_script:
   - apt-get update -qq
-  - apt-get install -qq -y dpkg dpkg-dev make > /dev/null 2>&1
+  - apt-get install -qq -y dpkg dpkg-dev make rpm tar > /dev/null 2>&1
 
 stages:
   - build
@@ -23,6 +23,7 @@ packaging:
     - make package
     - mkdir $PACKAGES_FOLDER_NAME
     - mv *.deb $PACKAGES_FOLDER_NAME/
+    - mv *.rpm $PACKAGES_FOLDER_NAME/
   artifacts:
     name: tuxedo-wmi-${CI_COMMIT_REF_SLUG}
     when: on_success

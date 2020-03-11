@@ -20,8 +20,8 @@
 
 Summary:        interface to WMI methods/control on TUXEDO Laptops
 Name:           %{module}
-Version:        2.0.0
-Release:        1
+Version:        x.x.x
+Release:        x
 License:        GPL-3.0+
 Group:          Hardware/Other
 BuildArch:      noarch
@@ -69,7 +69,9 @@ fi
 exit 0
 
 %preun
-/usr/sbin/rmmod tuxedo_wmi
+if [ $1 != 1 ];then
+    /usr/sbin/rmmod tuxedo_wmi
+fi
 /usr/sbin/dkms remove -m %{module} -v %{version} --all
 exit 0
 

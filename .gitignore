@@ -9,4 +9,9 @@
 *.symvers
 *.order
 *.deb
-package_build/
+*.rpm
+rpm/BUILD
+rpm/BUILDROOT
+rpm/RPMS
+rpm/SOURCES
+deb/tuxedo-wmi-*
