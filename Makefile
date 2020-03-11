@@ -61,6 +61,8 @@ package-rpm:
 	cd rpm/SOURCES && tar cjvf tuxedo-wmi-$(VER).tar.bz2 tuxedo-wmi-$(VER)
 	# Make rpm package
 	rpmbuild --debug -bb --define "_topdir `pwd`/rpm" rpm/SPECS/tuxedo-wmi.spec
+	# Copy built package
+	cp rpm/RPMS/noarch/*.rpm .
 
 package-rpm-clean:
 	rm -rf rpm/BUILD || true
@@ -68,3 +70,4 @@ package-rpm-clean:
 	rm -rf rpm/RPMS || true
 	rm -rf rpm/SRPMS || true
 	rm -rf rpm/BUILDROOT || true
+	rm *.rpm || true
