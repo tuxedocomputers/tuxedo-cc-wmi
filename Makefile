@@ -19,7 +19,7 @@ DEB_PACKAGE_BASE := deb/tuxedo-wmi-$(VER)
 DEB_PACKAGE_SRC := $(DEB_PACKAGE_BASE)/usr/src/tuxedo-wmi-$(VER)/
 DEB_PACKAGE_CTRL := $(DEB_PACKAGE_BASE)/DEBIAN
 
-package: package-deb
+package: package-deb package-rpm
 
 package-deb:
 	# Rename or complete folder structure according to current version
@@ -39,3 +39,32 @@ package-deb:
 	chmod -R 755 $(DEB_PACKAGE_CTRL)
 	# Make deb package
 	dpkg-deb --root-owner-group -b $(DEB_PACKAGE_BASE) tuxedo-wmi-$(VER).deb
+
+
+RPM_PACKAGE_SRC := rpm/SOURCES/tuxedo-wmi-$(VER)
+RELEASE := 0
+
+package-rpm:
+	# Create folder source structure according to current version
+	rm -rf rpm/SOURCES || true
+	mkdir rpm/SOURCES
+	mkdir $(RPM_PACKAGE_SRC)
+	# Modify spec file with version etc.
+	sed -i 's/^Version:[^\n]*/Version:        $(VER)/g' rpm/SPECS/tuxedo-wmi.spec
+	sed -i 's/^Release:[^\n]*/Release:        $(RELEASE)/g' rpm/SPECS/tuxedo-wmi.spec
+	# Copy source
+	cp -rf dkms.conf $(RPM_PACKAGE_SRC)
+	cp -rf Makefile $(RPM_PACKAGE_SRC)
+	cp -rf src $(RPM_PACKAGE_SRC)
+	cp -rf LICENSE $(RPM_PACKAGE_SRC)
+	# Compress/package source
+	cd rpm/SOURCES && tar cjvf tuxedo-wmi-$(VER).tar.bz2 tuxedo-wmi-$(VER)
+	# Make rpm package
+	rpmbuild --debug -bb --define "_topdir `pwd`/rpm" rpm/SPECS/tuxedo-wmi.spec
+
+package-rpm-clean:
+	rm -rf rpm/BUILD || true
+	rm -rf rpm/SOURCES || true
+	rm -rf rpm/RPMS || true
+	rm -rf rpm/SRPMS || true
+	rm -rf rpm/BUILDROOT || true
