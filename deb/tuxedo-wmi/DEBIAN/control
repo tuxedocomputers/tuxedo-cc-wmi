@@ -2,6 +2,7 @@ Package: tuxedo-wmi
 Version: x.x.x
 Section: admin
 Priority: optional
+Depends: dkms (>= 1.95)
 Maintainer: Eckhart Mohr <tux@tuxedocomputers.com>
 Homepage: https://www.tuxedocomputers.com
 Architecture: all

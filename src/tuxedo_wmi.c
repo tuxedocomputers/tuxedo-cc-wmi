@@ -12,7 +12,7 @@
 
 MODULE_DESCRIPTION("WMI control for TUXEDO laptops");
 MODULE_AUTHOR("TUXEDO Computers <tux@tuxedocomputers.com>");
-MODULE_VERSION("2.0.1");
+MODULE_VERSION("2.0.2");
 MODULE_LICENSE("GPL");
 MODULE_ALIAS("wmi:" CLEVO_WMI_METHOD_GUID);
 
