@@ -6,19 +6,43 @@ set -e
 module=tuxedo-wmi
 version=x.x.x
 
-case "$1" in
-        configure)
 
-		occurrences=$( /usr/sbin/dkms status | grep ${module} | grep ${version} | wc -l )
-		if [ ! "$occurrences" > 0 ];
-                then
-                    /usr/sbin/dkms add -m ${module} -v ${version};
-                fi
-                /usr/sbin/dkms build -m ${module} -v ${version}
-                /usr/sbin/dkms install -m ${module} -v ${version}
-                /sbin/rmmod -s tuxedo_wmi || true
-                /sbin/modprobe tuxedo_wmi
-                exit 0
+NAME=${module}
+PACKAGE_NAME=${NAME}
+
+# From dkms standard postinst
+# Copyright (C) 2002-2005 Flavio Stanchina
+# Copyright (C) 2005-2006 Aric Cyr
+# Copyright (C) 2007 Mario Limonciello
+# Copyright (C) 2009 Alberto Milone
+DEB_NAME=$(echo $PACKAGE_NAME | sed 's,_,-,')
+CVERSION=`dpkg-query -W -f='${Version}' $DEB_NAME | awk -F "-" '{print $1}' | cut -d\: -f2`
+ARCH=`dpkg --print-architecture`
+
+dkms_configure () {
+	for POSTINST in /usr/lib/dkms/common.postinst "/usr/share/$PACKAGE_NAME/postinst"; do
+		if [ -f "$POSTINST" ]; then
+			"$POSTINST" "$NAME" "$CVERSION" "/usr/share/$PACKAGE_NAME" "$ARCH" "$2"
+			return $?
+		fi
+		echo "WARNING: $POSTINST does not exist." >&2
+	done
+	echo "ERROR: DKMS version is too old and $PACKAGE_NAME was not" >&2
+	echo "built with legacy DKMS support." >&2
+	echo "You must either rebuild $PACKAGE_NAME with legacy postinst" >&2
+	echo "support or upgrade DKMS to a more current version." >&2
+	return 1
+}
+
+# End dkms standard postinst
+
+case "$1" in
+    configure)
+		# Run standard dkms build/install for all kernels with headers installed
+        dkms_configure
+
+		# Attempt to load module immediately, fail silently if not possible at this stage
+		modprobe ${module} > /dev/null 2>&1 || true
 	;;
 
 	abort-upgrade|abort-remove|abort-deconfigure)
