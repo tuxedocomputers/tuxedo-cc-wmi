@@ -20,8 +20,8 @@
 
 Summary:        interface to WMI methods/control on TUXEDO Laptops
 Name:           %{module}
-Version:        x.x.x
-Release:        x
+Version:        2.0.3
+Release:        0
 License:        GPL-3.0+
 Group:          Hardware/Other
 BuildArch:      noarch
@@ -44,6 +44,9 @@ rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/src/%{module}-%{version}/
 cp dkms.conf Makefile %{buildroot}/usr/src/%{module}-%{version}
 cp -R src/ %{buildroot}/usr/src/%{module}-%{version}
+mkdir -p %{buildroot}/usr/share/
+mkdir -p %{buildroot}/usr/share/%{module}/
+cp postinst %{buildroot}/usr/share/%{module}
 
 %clean
 rm -rf %{buildroot}
@@ -54,26 +57,36 @@ rm -rf %{buildroot}
 %attr(0644,root,root) /usr/src/%{module}-%{version}/*
 %attr(0755,root,root) /usr/src/%{module}-%{version}/src/
 %attr(0644,root,root) /usr/src/%{module}-%{version}/src/*
+%attr(0755,root,root) /usr/share/%{module}/
+%attr(0755,root,root) /usr/share/%{module}/postinst
 %license LICENSE
 
 %post
-occurrences=/usr/sbin/dkms status | grep "%{module}" | grep "%{version}" | wc -l
-if [ ! occurrences > 0 ];
-then
-    /usr/sbin/dkms add -m %{module} -v %{version}
-fi
-/usr/sbin/dkms build -m %{module} -v %{version}
-/usr/sbin/dkms install -m %{module} -v %{version}
-/usr/sbin/rmmod -s tuxedo_wmi
-/usr/sbin/modprobe tuxedo_wmi
-exit 0
+for POSTINST in /usr/lib/dkms/common.postinst /usr/share/%{module}/postinst; do
+    if [ -f $POSTINST ]; then
+        $POSTINST %{module} %{version} /usr/share/%{module}
+        modprobe %{module} > /dev/null 2>&1 || true
+        exit $?
+    fi
+    echo "WARNING: $POSTINST does not exist."
+done
+
+echo -e "ERROR: DKMS version is too old and tuxedo-wmi was not"
+echo -e "built with legacy DKMS support."
+echo -e "You must either rebuild tuxedo-wmi with legacy postinst"
+echo -e "support or upgrade DKMS to a more current version."
+exit 1
+
 
 %preun
+echo -e
+echo -e "Uninstall of tuxedo-wmi module (version 1.0.0) beginning:"
+dkms remove -m %{module} -v %{version} --all --rpm_safe_upgrade
 if [ $1 != 1 ];then
-    /usr/sbin/rmmod tuxedo_wmi
+    /usr/sbin/rmmod tuxedo_wmi > /dev/null 2>&1 || true
 fi
-/usr/sbin/dkms remove -m %{module} -v %{version} --all
 exit 0
+
 
 %changelog
 * Thu Mar 05 2020 Eckhart Mohr <tux@tuxedocomputers.com> 1.0.0-0

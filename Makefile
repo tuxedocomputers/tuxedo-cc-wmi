@@ -1,4 +1,4 @@
-obj-m += ./src/tuxedo_wmi.o
+obj-m := ./src/tuxedo_wmi.o
 
 PWD := $(shell pwd)
 KDIR := /lib/modules/$(shell uname -r)/build
@@ -62,6 +62,7 @@ package-rpm:
 	cp -rf Makefile $(RPM_PACKAGE_SRC)
 	cp -rf src $(RPM_PACKAGE_SRC)
 	cp -rf LICENSE $(RPM_PACKAGE_SRC)
+	cp -rf rpm_postinst $(RPM_PACKAGE_SRC)/postinst
 	# Compress/package source
 	cd rpm/SOURCES && tar cjvf tuxedo-wmi-$(VER).tar.bz2 tuxedo-wmi-$(VER)
 	# Make rpm package
