@@ -18,10 +18,13 @@ clean:
 
 # Package version from dkms.conf
 VER := $(shell sed -n 's/^PACKAGE_VERSION=\([^\n]*\)/\1/p' dkms.conf)
+MODULE_NAME := $(shell sed -n 's/^PACKAGE_NAME=\([^\n]*\)/\1/p' dkms.conf)
+
+DEB_PACKAGE_NAME := $(MODULE_NAME)-$(VER)
 
 # Deb package folder variables
-DEB_PACKAGE_BASE := deb/tuxedo-wmi-$(VER)
-DEB_PACKAGE_SRC := $(DEB_PACKAGE_BASE)/usr/src/tuxedo-wmi-$(VER)/
+DEB_PACKAGE_BASE := deb/$(DEB_PACKAGE_NAME)
+DEB_PACKAGE_SRC := $(DEB_PACKAGE_BASE)/usr/src/$(DEB_PACKAGE_NAME)
 DEB_PACKAGE_CTRL := $(DEB_PACKAGE_BASE)/DEBIAN
 
 package: package-deb package-rpm
@@ -30,11 +33,11 @@ package-clean: package-deb-clean package-rpm-clean
 package-deb:
 	# Create/complete folder structure according to current version
 	rm -rf $(DEB_PACKAGE_BASE) || true
-	cp -rf deb/tuxedo-wmi $(DEB_PACKAGE_BASE)
+	cp -rf deb/$(MODULE_NAME) $(DEB_PACKAGE_BASE)
 	rm -rf $(DEB_PACKAGE_BASE)/usr/src
 	mkdir $(DEB_PACKAGE_BASE)/usr/src || true
 	mkdir $(DEB_PACKAGE_SRC) || true
-	mkdir -p $(DEB_PACKAGE_BASE)/usr/share/tuxedo-wmi || true
+	mkdir -p $(DEB_PACKAGE_BASE)/usr/share/$(MODULE_NAME) || true
 
 	# Replace version numbers in control/script files
 	sed -i 's/^Version:[^\n]*/Version: $(VER)/g' $(DEB_PACKAGE_CTRL)/control
@@ -44,17 +47,18 @@ package-deb:
 	cp -rf dkms.conf $(DEB_PACKAGE_SRC)
 	cp -rf Makefile $(DEB_PACKAGE_SRC)
 	cp -rf src $(DEB_PACKAGE_SRC)
-	cp -rf src_pkg/dkms_postinst $(DEB_PACKAGE_BASE)/usr/share/tuxedo-wmi/postinst
+	cp -rf src_pkg/dkms_postinst $(DEB_PACKAGE_BASE)/usr/share/$(MODULE_NAME)/postinst
 	# Make sure control folder has acceptable permissions
 	chmod -R 755 $(DEB_PACKAGE_CTRL)
 	# Make deb package
-	dpkg-deb --root-owner-group -b $(DEB_PACKAGE_BASE) tuxedo-wmi-$(VER).deb
+	dpkg-deb --root-owner-group -b $(DEB_PACKAGE_BASE) $(DEB_PACKAGE_NAME).deb
 
 package-deb-clean:
-	rm -rf deb/tuxedo-wmi-*
+	rm -rf deb/$(MODULE_NAME)-*
 	rm *.deb || true
 
-RPM_PACKAGE_SRC := rpm/SOURCES/tuxedo-wmi-$(VER)
+RPM_PACKAGE_NAME := $(MODULE_NAME)-$(VER)
+RPM_PACKAGE_SRC := rpm/SOURCES/$(RPM_PACKAGE_NAME)
 RELEASE := 0
 
 package-rpm:
@@ -62,8 +66,8 @@ package-rpm:
 	rm -rf rpm || true
 	mkdir -p $(RPM_PACKAGE_SRC)
 	# Modify spec file with version etc.
-	sed -i 's/^Version:[^\n]*/Version:        $(VER)/g' src_pkg/tuxedo-wmi.spec
-	sed -i 's/^Release:[^\n]*/Release:        $(RELEASE)/g' src_pkg/tuxedo-wmi.spec
+	sed -i 's/^Version:[^\n]*/Version:        $(VER)/g' src_pkg/$(MODULE_NAME).spec
+	sed -i 's/^Release:[^\n]*/Release:        $(RELEASE)/g' src_pkg/$(MODULE_NAME).spec
 	# Copy source
 	cp -rf dkms.conf $(RPM_PACKAGE_SRC)
 	cp -rf Makefile $(RPM_PACKAGE_SRC)
@@ -71,9 +75,9 @@ package-rpm:
 	cp -rf LICENSE $(RPM_PACKAGE_SRC)
 	cp -rf src_pkg/dkms_postinst $(RPM_PACKAGE_SRC)/postinst
 	# Compress/package source
-	cd rpm/SOURCES && tar cjvf tuxedo-wmi-$(VER).tar.bz2 tuxedo-wmi-$(VER)
+	cd rpm/SOURCES && tar cjvf $(RPM_PACKAGE_NAME).tar.bz2 $(RPM_PACKAGE_NAME)
 	# Make rpm package
-	rpmbuild --debug -bb --define "_topdir `pwd`/rpm" src_pkg/tuxedo-wmi.spec
+	rpmbuild --debug -bb --define "_topdir `pwd`/rpm" src_pkg/$(MODULE_NAME).spec
 	# Copy built package
 	cp rpm/RPMS/noarch/*.rpm .
 
