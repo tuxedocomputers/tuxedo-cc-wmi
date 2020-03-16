@@ -1,6 +1,6 @@
 #!/bin/sh
 
-module=tuxedo-wmi
+module=module-name
 version=x.x.x
 
 set -e
@@ -11,7 +11,7 @@ case "$1" in
        	then
             dkms remove -m $module -v $version --all
             # Attempt to remove module, fail silently if module is already unloaded
-            rmmod -s tuxedo_wmi > /dev/null 2>&1 || true
+            rmmod -s $module > /dev/null 2>&1 || true
         fi
     ;;
 

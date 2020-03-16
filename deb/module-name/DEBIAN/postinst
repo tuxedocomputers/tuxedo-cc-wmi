@@ -3,7 +3,7 @@
 
 set -e
 
-module=tuxedo-wmi
+module=module-name
 version=x.x.x
 
 
@@ -41,7 +41,8 @@ case "$1" in
 		# Run standard dkms build/install for all kernels with headers installed
         dkms_configure
 
-		# Attempt to load module immediately, fail silently if not possible at this stage
+		# Attempt to (re-)load module immediately, fail silently if not possible at this stage
+		rmmod ${module} > /dev/null 2>&1 || true
 		modprobe ${module} > /dev/null 2>&1 || true
 	;;
 

@@ -39,10 +39,13 @@ package-deb:
 	mkdir -p $(DEB_PACKAGE_SRC) || true
 	mkdir -p $(DEB_PACKAGE_BASE)/usr/share/$(MODULE_NAME) || true
 
-	# Replace version numbers in control/script files
+	# Replace name/version numbers in control/script files
 	sed -i 's/^Version:[^\n]*/Version: $(VER)/g' $(DEB_PACKAGE_CTRL)/control
+	sed -i 's/^Package:[^\n]*/Package: $(MODULE_NAME)/g' $(DEB_PACKAGE_CTRL)/control
 	sed -i 's/^version=[^\n]*/version=$(VER)/g' $(DEB_PACKAGE_CTRL)/postinst
+	sed -i 's/^module=[^\n]*/module=$(MODULE_NAME)/g' $(DEB_PACKAGE_CTRL)/postinst
 	sed -i 's/^version=[^\n]*/version=$(VER)/g' $(DEB_PACKAGE_CTRL)/prerm
+	sed -i 's/^module=[^\n]*/module=$(MODULE_NAME)/g' $(DEB_PACKAGE_CTRL)/prerm
 	# Copy source
 	cp -rf dkms.conf $(DEB_PACKAGE_SRC)
 	cp -rf Makefile $(DEB_PACKAGE_SRC)

@@ -1,11 +1,11 @@
-Package: tuxedo-wmi
+Package: module-name
 Version: x.x.x
 Section: admin
 Priority: optional
 Depends: dkms (>= 1.95)
-Maintainer: Eckhart Mohr <tux@tuxedocomputers.com>
+Maintainer: TUXEDO Computers GmbH <tux@tuxedocomputers.com>
 Homepage: https://www.tuxedocomputers.com
 Architecture: all
-Description: interface to WMI methods/control on TUXEDO Laptops
+Description: An interface to WMI methods/control on TUXEDO Laptops
  This module provides an interface to controlling various functionality (mainly
  connected to the EC) through WMI.
