@@ -33,10 +33,10 @@ package-clean: package-deb-clean package-rpm-clean
 package-deb:
 	# Create/complete folder structure according to current version
 	rm -rf $(DEB_PACKAGE_BASE) || true
-	cp -rf deb/$(MODULE_NAME) $(DEB_PACKAGE_BASE)
-	rm -rf $(DEB_PACKAGE_BASE)/usr/src
-	mkdir $(DEB_PACKAGE_BASE)/usr/src || true
-	mkdir $(DEB_PACKAGE_SRC) || true
+	cp -rf deb/module-name $(DEB_PACKAGE_BASE)
+	mv $(DEB_PACKAGE_BASE)/usr/share/doc/module-name $(DEB_PACKAGE_BASE)/usr/share/doc/$(MODULE_NAME)
+	mkdir -p $(DEB_PACKAGE_BASE)/usr/src || true
+	mkdir -p $(DEB_PACKAGE_SRC) || true
 	mkdir -p $(DEB_PACKAGE_BASE)/usr/share/$(MODULE_NAME) || true
 
 	# Replace version numbers in control/script files
