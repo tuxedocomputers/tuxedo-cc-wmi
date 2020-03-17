@@ -16,7 +16,7 @@ clean:
 # Packaging only
 # ---------------
 
-# Package version from dkms.conf
+# Package version and name from dkms.conf
 VER := $(shell sed -n 's/^PACKAGE_VERSION=\([^\n]*\)/\1/p' dkms.conf)
 MODULE_NAME := $(shell sed -n 's/^PACKAGE_NAME=\([^\n]*\)/\1/p' dkms.conf)
 

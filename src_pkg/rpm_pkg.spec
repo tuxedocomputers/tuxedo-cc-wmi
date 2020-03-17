@@ -90,7 +90,7 @@ exit 0
 
 
 %changelog
-* Tue Mar 17 2020 Christoffer Sandberg <tux@tuxedocomputers.com> 2.0.3-0
+* Tue Mar 17 2020 C Sandberg <tux@tuxedocomputers.com> 2.0.3-0
 - Packaging
 - Module alias
 * Thu Mar 05 2020 Eckhart Mohr <tux@tuxedocomputers.com> 1.0.0-0
