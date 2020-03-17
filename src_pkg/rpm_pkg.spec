@@ -1,7 +1,7 @@
-%define module tuxedo-wmi
+%define module module-name
 
 #
-# spec file for package tuxedo-keyboard
+# spec file for package tuxedo-wmi
 #
 # Copyright (c) 2019 SUSE LINUX GmbH, Nuernberg, Germany.
 #
@@ -18,17 +18,17 @@
 #
 
 
-Summary:        interface to WMI methods/control on TUXEDO Laptops
+Summary:        An interface to WMI methods/control on TUXEDO Laptops
 Name:           %{module}
-Version:        2.0.3
-Release:        0
+Version:        x.x.x
+Release:        x
 License:        GPL-3.0+
 Group:          Hardware/Other
 BuildArch:      noarch
-Url:            https://gitlab.com/tuxedocomputers/development/tuxedo-keyboard
+Url:            n/a
 Source:         %{module}-%{version}.tar.bz2
-Provides:	tuxedo-wmi = %{version}-%{release}
-Obsoletes:	tuxedo-wmi < %{version}-%{release}
+Provides:       %{module} = %{version}-%{release}
+Obsoletes:      %{module} < %{version}-%{release}
 Requires:       dkms >= 1.95
 BuildRoot:      %{_tmppath}
 
@@ -71,19 +71,19 @@ for POSTINST in /usr/lib/dkms/common.postinst /usr/share/%{module}/postinst; do
     echo "WARNING: $POSTINST does not exist."
 done
 
-echo -e "ERROR: DKMS version is too old and tuxedo-wmi was not"
+echo -e "ERROR: DKMS version is too old and %{module} was not"
 echo -e "built with legacy DKMS support."
-echo -e "You must either rebuild tuxedo-wmi with legacy postinst"
+echo -e "You must either rebuild %{module} with legacy postinst"
 echo -e "support or upgrade DKMS to a more current version."
 exit 1
 
 
 %preun
 echo -e
-echo -e "Uninstall of tuxedo-wmi module (version 1.0.0) beginning:"
+echo -e "Uninstall of %{module} module (version %{version}-%{release}) beginning:"
 dkms remove -m %{module} -v %{version} --all --rpm_safe_upgrade
 if [ $1 != 1 ];then
-    /usr/sbin/rmmod tuxedo_wmi > /dev/null 2>&1 || true
+    /usr/sbin/rmmod %{module} > /dev/null 2>&1 || true
 fi
 exit 0
 

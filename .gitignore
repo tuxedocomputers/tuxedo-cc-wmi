@@ -10,7 +10,5 @@
 *.order
 *.deb
 *.rpm
-rpm/BUILD
-rpm/RPMS
-rpm/SOURCES
+rpm
 deb/tuxedo-wmi-*

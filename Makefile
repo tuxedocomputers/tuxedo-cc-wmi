@@ -57,20 +57,25 @@ package-deb:
 	dpkg-deb --root-owner-group -b $(DEB_PACKAGE_BASE) $(DEB_PACKAGE_NAME).deb
 
 package-deb-clean:
-	rm -rf deb/$(MODULE_NAME)-*
-	rm *.deb || true
+	rm -rf deb/$(MODULE_NAME)-* > /dev/null 2>&1 || true
+	rm *.deb > /dev/null 2>&1 || true
 
 RPM_PACKAGE_NAME := $(MODULE_NAME)-$(VER)
 RPM_PACKAGE_SRC := rpm/SOURCES/$(RPM_PACKAGE_NAME)
+RPM_SPEC := rpm/SPECS/$(MODULE_NAME).spec
 RELEASE := 0
 
 package-rpm:
 	# Create folder source structure according to current version
 	rm -rf rpm || true
 	mkdir -p $(RPM_PACKAGE_SRC)
+	mkdir -p rpm/SPECS
+	# Copy spec template
+	cp -rf src_pkg/rpm_pkg.spec $(RPM_SPEC)
 	# Modify spec file with version etc.
-	sed -i 's/^Version:[^\n]*/Version:        $(VER)/g' src_pkg/$(MODULE_NAME).spec
-	sed -i 's/^Release:[^\n]*/Release:        $(RELEASE)/g' src_pkg/$(MODULE_NAME).spec
+	sed -i 's/^%define module[^\n]*/%define module $(MODULE_NAME)/g' $(RPM_SPEC)
+	sed -i 's/^Version:[^\n]*/Version:        $(VER)/g' $(RPM_SPEC)
+	sed -i 's/^Release:[^\n]*/Release:        $(RELEASE)/g' $(RPM_SPEC)
 	# Copy source
 	cp -rf dkms.conf $(RPM_PACKAGE_SRC)
 	cp -rf Makefile $(RPM_PACKAGE_SRC)
@@ -80,10 +85,10 @@ package-rpm:
 	# Compress/package source
 	cd rpm/SOURCES && tar cjvf $(RPM_PACKAGE_NAME).tar.bz2 $(RPM_PACKAGE_NAME)
 	# Make rpm package
-	rpmbuild --debug -bb --define "_topdir `pwd`/rpm" src_pkg/$(MODULE_NAME).spec
+	rpmbuild --debug -bb --define "_topdir `pwd`/rpm" $(RPM_SPEC)
 	# Copy built package
 	cp rpm/RPMS/noarch/*.rpm .
 
 package-rpm-clean:
-	rm -rf rpm || true
-	rm *.rpm || true
+	rm -rf rpm > /dev/null 2>&1 || true
+	rm *.rpm > /dev/null 2>&1 || true
