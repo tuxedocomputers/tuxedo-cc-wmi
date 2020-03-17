@@ -22,15 +22,16 @@ Summary:        An interface to WMI methods/control on TUXEDO Laptops
 Name:           %{module}
 Version:        x.x.x
 Release:        x
-License:        GPL-3.0+
+License:        GPLv3+
 Group:          Hardware/Other
 BuildArch:      noarch
-Url:            n/a
+Url:            https://www.tuxedocomputers.com
 Source:         %{module}-%{version}.tar.bz2
 Provides:       %{module} = %{version}-%{release}
 Obsoletes:      %{module} < %{version}-%{release}
 Requires:       dkms >= 1.95
 BuildRoot:      %{_tmppath}
+Packager:       Tomte <tux@tuxedocomputers.com>
 
 %description
 This module provides an interface to controlling various functionality (mainly
@@ -89,5 +90,8 @@ exit 0
 
 
 %changelog
+* Tue Mar 17 2020 Christoffer Sandberg <tux@tuxedocomputers.com> 2.0.3-0
+- Packaging
+- Module alias
 * Thu Mar 05 2020 Eckhart Mohr <tux@tuxedocomputers.com> 1.0.0-0
 - Init

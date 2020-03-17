@@ -51,8 +51,16 @@ package-deb:
 	cp -rf Makefile $(DEB_PACKAGE_SRC)
 	cp -rf src $(DEB_PACKAGE_SRC)
 	cp -rf src_pkg/dkms_postinst $(DEB_PACKAGE_BASE)/usr/share/$(MODULE_NAME)/postinst
-	# Make sure control folder has acceptable permissions
+	# Make sure files and folders have acceptable permissions
 	chmod -R 755 $(DEB_PACKAGE_CTRL)
+	chmod 644 $(DEB_PACKAGE_CTRL)/control
+	find deb/$(DEB_PACKAGE_NAME)/usr -type d -exec chmod 755 {} \;
+	find deb/$(DEB_PACKAGE_NAME)/usr -type f -exec chmod 644 {} \;
+	chmod 755 $(DEB_PACKAGE_BASE)/usr/share/$(MODULE_NAME)/postinst
+	
+	gunzip $(DEB_PACKAGE_BASE)/usr/share/doc/$(MODULE_NAME)/changelog.gz
+	gzip -n9 $(DEB_PACKAGE_BASE)/usr/share/doc/$(MODULE_NAME)/changelog
+
 	# Make deb package
 	dpkg-deb --root-owner-group -b $(DEB_PACKAGE_BASE) $(DEB_PACKAGE_NAME).deb
 
