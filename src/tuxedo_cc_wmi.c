@@ -108,31 +108,31 @@ static struct file_operations fops_dev = {
 //    .release            = fop_release
 };
 
-struct class *tuxedo_wmi_device_class;
-dev_t tuxedo_wmi_device_handle;
+struct class *tuxedo_cc_wmi_device_class;
+dev_t tuxedo_cc_wmi_device_handle;
 
-static struct cdev tuxedo_wmi_cdev;
+static struct cdev tuxedo_cc_wmi_cdev;
 
-static int __init tuxedo_wmi_init(void)
+static int __init tuxedo_cc_wmi_init(void)
 {
     int err;
 
     // Only initialize if WMI GUID exists
     // This is not hotpluggable so can be done in module init
     if (wmi_has_guid(CLEVO_WMI_METHOD_GUID)) {
-        err = alloc_chrdev_region(&tuxedo_wmi_device_handle, 0, 1, "tuxedo_wmi_cdev");
+        err = alloc_chrdev_region(&tuxedo_cc_wmi_device_handle, 0, 1, "tuxedo_cc_wmi_cdev");
         if (err != 0) {
             pr_err("Failed to allocate chrdev region\n");
             return err;
         }
-        cdev_init(&tuxedo_wmi_cdev, &fops_dev);
-        err = (cdev_add(&tuxedo_wmi_cdev, tuxedo_wmi_device_handle, 1));
+        cdev_init(&tuxedo_cc_wmi_cdev, &fops_dev);
+        err = (cdev_add(&tuxedo_cc_wmi_cdev, tuxedo_cc_wmi_device_handle, 1));
         if (err < 0) {
             pr_err("Failed to add cdev\n");
-            unregister_chrdev_region(tuxedo_wmi_device_handle, 1);
+            unregister_chrdev_region(tuxedo_cc_wmi_device_handle, 1);
         }
-        tuxedo_wmi_device_class = class_create(THIS_MODULE, "tuxedo_wmi");
-        device_create(tuxedo_wmi_device_class, NULL, tuxedo_wmi_device_handle, NULL, "tuxedo_wmi");
+        tuxedo_cc_wmi_device_class = class_create(THIS_MODULE, "tuxedo_wmi");
+        device_create(tuxedo_cc_wmi_device_class, NULL, tuxedo_cc_wmi_device_handle, NULL, "tuxedo_cc_wmi");
         pr_debug("Successfully initialized\n");
     } else {
         pr_debug("Expected GUID (%s) not found, module inactive\n", CLEVO_WMI_METHOD_GUID);
@@ -141,14 +141,14 @@ static int __init tuxedo_wmi_init(void)
     return 0;
 }
 
-static void __exit tuxedo_wmi_exit(void)
+static void __exit tuxedo_cc_wmi_exit(void)
 {
-    device_destroy(tuxedo_wmi_device_class, tuxedo_wmi_device_handle);
-    class_destroy(tuxedo_wmi_device_class);
-    cdev_del(&tuxedo_wmi_cdev);
-    unregister_chrdev_region(tuxedo_wmi_device_handle, 1);
+    device_destroy(tuxedo_cc_wmi_device_class, tuxedo_cc_wmi_device_handle);
+    class_destroy(tuxedo_cc_wmi_device_class);
+    cdev_del(&tuxedo_cc_wmi_cdev);
+    unregister_chrdev_region(tuxedo_cc_wmi_device_handle, 1);
     pr_debug("Module exit\n");
 }
 
-module_init(tuxedo_wmi_init);
-module_exit(tuxedo_wmi_exit);
+module_init(tuxedo_cc_wmi_init);
+module_exit(tuxedo_cc_wmi_exit);
