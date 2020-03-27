@@ -11,4 +11,4 @@
 *.deb
 *.rpm
 rpm
-deb/tuxedo-wmi-*
+deb/tuxedo-cc-wmi-*

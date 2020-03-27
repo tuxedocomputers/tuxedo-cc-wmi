@@ -2,7 +2,7 @@
 
 ## Project structure
 ```
-tuxedo-wmi
+tuxedo-cc-wmi
 |  README.md
 |  Makefile             Build/packaging scripts
 |  dkms.conf

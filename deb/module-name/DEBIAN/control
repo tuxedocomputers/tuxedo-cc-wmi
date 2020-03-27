@@ -6,6 +6,6 @@ Depends: dkms (>= 1.95)
 Maintainer: TUXEDO Computers GmbH <tux@tuxedocomputers.com>
 Homepage: https://www.tuxedocomputers.com
 Architecture: all
-Description: interface to WMI methods/control on TUXEDO Laptops
+Description: Interface to WMI methods/control on TUXEDO Laptops
  This module provides an interface to controlling various functionality (mainly
  connected to the EC) through WMI.

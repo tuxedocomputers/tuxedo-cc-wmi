@@ -25,7 +25,7 @@ packaging:
     - mv *.deb $PACKAGES_FOLDER_NAME/
     - mv *.rpm $PACKAGES_FOLDER_NAME/
   artifacts:
-    name: tuxedo-wmi-${CI_COMMIT_REF_SLUG}
+    name: tuxedo-cc-wmi-${CI_COMMIT_REF_SLUG}
     when: on_success
     paths:
       - $PACKAGES_FOLDER_NAME/*

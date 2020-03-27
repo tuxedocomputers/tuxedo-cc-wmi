@@ -1,7 +1,7 @@
 %define module module-name
 
 #
-# spec file for package tuxedo-wmi
+# spec file for package tuxedo-cc-wmi
 #
 # Copyright (c) 2019 SUSE LINUX GmbH, Nuernberg, Germany.
 #
@@ -91,8 +91,5 @@ exit 0
 
 
 %changelog
-* Tue Mar 17 2020 C Sandberg <tux@tuxedocomputers.com> 2.0.3-0
-- Packaging
-- Module alias
-* Thu Mar 05 2020 Eckhart Mohr <tux@tuxedocomputers.com> 1.0.0-0
-- Init
+* Fri Mar 27 2020 C Sandberg <tux@tuxedocomputers.com> 0.1.0-0
+- Module/package reborn as tuxedo-cc-wmi

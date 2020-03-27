@@ -1,9 +1,9 @@
 #
 # Copyright (c) 2019-2020 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
 #
-# This file is part of tuxedo-wmi.
+# This file is part of tuxedo-cc-wmi.
 #
-# tuxedo-wmi is free software: you can redistribute it and/or modify
+# tuxedo-cc-wmi is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this software.  If not, see <https://www.gnu.org/licenses/>.
 #
-obj-m := ./src/tuxedo_wmi.o
+obj-m := ./src/tuxedo_cc_wmi.o
 
 PWD := $(shell pwd)
 KDIR := /lib/modules/$(shell uname -r)/build
