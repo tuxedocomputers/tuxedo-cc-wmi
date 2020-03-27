@@ -1,3 +1,21 @@
+/*!
+ * Copyright (c) 2019-2020 TUXEDO Computers GmbH <tux@tuxedocomputers.com>
+ *
+ * This file is part of tuxedo-wmi.
+ *
+ * tuxedo-wmi is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this software.  If not, see <https://www.gnu.org/licenses/>.
+ */
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -12,7 +30,7 @@
 
 MODULE_DESCRIPTION("WMI control for TUXEDO laptops");
 MODULE_AUTHOR("TUXEDO Computers <tux@tuxedocomputers.com>");
-MODULE_VERSION("2.0.2");
+MODULE_VERSION("2.0.3");
 MODULE_LICENSE("GPL");
 MODULE_ALIAS("wmi:" CLEVO_WMI_METHOD_GUID);
 

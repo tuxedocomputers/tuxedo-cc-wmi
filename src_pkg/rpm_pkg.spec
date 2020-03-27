@@ -1,7 +1,7 @@
-%define module tuxedo-wmi
+%define module module-name
 
 #
-# spec file for package tuxedo-keyboard
+# spec file for package tuxedo-wmi
 #
 # Copyright (c) 2019 SUSE LINUX GmbH, Nuernberg, Germany.
 #
@@ -18,19 +18,20 @@
 #
 
 
-Summary:        interface to WMI methods/control on TUXEDO Laptops
+Summary:        An interface to WMI methods/control on TUXEDO Laptops
 Name:           %{module}
 Version:        x.x.x
 Release:        x
-License:        GPL-3.0+
+License:        GPLv3+
 Group:          Hardware/Other
 BuildArch:      noarch
-Url:            https://gitlab.com/tuxedocomputers/development/tuxedo-keyboard
+Url:            https://www.tuxedocomputers.com
 Source:         %{module}-%{version}.tar.bz2
-Provides:	tuxedo-wmi = %{version}-%{release}
-Obsoletes:	tuxedo-wmi < %{version}-%{release}
+Provides:       %{module} = %{version}-%{release}
+Obsoletes:      %{module} < %{version}-%{release}
 Requires:       dkms >= 1.95
 BuildRoot:      %{_tmppath}
+Packager:       Tomte <tux@tuxedocomputers.com>
 
 %description
 This module provides an interface to controlling various functionality (mainly
@@ -44,6 +45,9 @@ rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/src/%{module}-%{version}/
 cp dkms.conf Makefile %{buildroot}/usr/src/%{module}-%{version}
 cp -R src/ %{buildroot}/usr/src/%{module}-%{version}
+mkdir -p %{buildroot}/usr/share/
+mkdir -p %{buildroot}/usr/share/%{module}/
+cp postinst %{buildroot}/usr/share/%{module}
 
 %clean
 rm -rf %{buildroot}
@@ -54,27 +58,41 @@ rm -rf %{buildroot}
 %attr(0644,root,root) /usr/src/%{module}-%{version}/*
 %attr(0755,root,root) /usr/src/%{module}-%{version}/src/
 %attr(0644,root,root) /usr/src/%{module}-%{version}/src/*
+%attr(0755,root,root) /usr/share/%{module}/
+%attr(0755,root,root) /usr/share/%{module}/postinst
 %license LICENSE
 
 %post
-occurrences=/usr/sbin/dkms status | grep "%{module}" | grep "%{version}" | wc -l
-if [ ! occurrences > 0 ];
-then
-    /usr/sbin/dkms add -m %{module} -v %{version}
-fi
-/usr/sbin/dkms build -m %{module} -v %{version}
-/usr/sbin/dkms install -m %{module} -v %{version}
-/usr/sbin/rmmod -s tuxedo_wmi
-/usr/sbin/modprobe tuxedo_wmi
-exit 0
+for POSTINST in /usr/lib/dkms/common.postinst /usr/share/%{module}/postinst; do
+    if [ -f $POSTINST ]; then
+        $POSTINST %{module} %{version} /usr/share/%{module}
+        RET=$?
+        modprobe %{module} > /dev/null 2>&1 || true
+        exit $RET
+    fi
+    echo "WARNING: $POSTINST does not exist."
+done
+
+echo -e "ERROR: DKMS version is too old and %{module} was not"
+echo -e "built with legacy DKMS support."
+echo -e "You must either rebuild %{module} with legacy postinst"
+echo -e "support or upgrade DKMS to a more current version."
+exit 1
+
 
 %preun
+echo -e
+echo -e "Uninstall of %{module} module (version %{version}-%{release}) beginning:"
+dkms remove -m %{module} -v %{version} --all --rpm_safe_upgrade
 if [ $1 != 1 ];then
-    /usr/sbin/rmmod tuxedo_wmi
+    /usr/sbin/rmmod %{module} > /dev/null 2>&1 || true
 fi
-/usr/sbin/dkms remove -m %{module} -v %{version} --all
 exit 0
 
+
 %changelog
+* Tue Mar 17 2020 C Sandberg <tux@tuxedocomputers.com> 2.0.3-0
+- Packaging
+- Module alias
 * Thu Mar 05 2020 Eckhart Mohr <tux@tuxedocomputers.com> 1.0.0-0
 - Init

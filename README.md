@@ -7,6 +7,7 @@ tuxedo-wmi
 |  Makefile             Build/packaging scripts
 |  dkms.conf
 |--src                  Module source
+|--src_pkg              Package source
 ```
 
 ## Description
