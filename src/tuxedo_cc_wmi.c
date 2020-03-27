@@ -28,8 +28,8 @@
 #include "clevo_wmi.h"
 #include "tuxedo_cc_wmi_ioctl.h"
 
-MODULE_DESCRIPTION("WMI control for TUXEDO laptops");
-MODULE_AUTHOR("TUXEDO Computers <tux@tuxedocomputers.com>");
+MODULE_DESCRIPTION("WMI method control for TUXEDO laptops");
+MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
 MODULE_VERSION("0.1.0");
 MODULE_LICENSE("GPL");
 MODULE_ALIAS("wmi:" CLEVO_WMI_METHOD_GUID);
