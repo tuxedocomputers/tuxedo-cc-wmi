@@ -1,7 +1,7 @@
 %define module module-name
 
 #
-# spec file for package tuxedo-wmi
+# spec file for package tuxedo-cc-wmi
 #
 # Copyright (c) 2019 SUSE LINUX GmbH, Nuernberg, Germany.
 #

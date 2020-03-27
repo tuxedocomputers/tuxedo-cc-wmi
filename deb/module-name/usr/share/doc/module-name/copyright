@@ -1,5 +1,5 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: tuxedo-wmi
+Upstream-Name: tuxedo-cc-wmi
 Upstream-Contact: TUXEDO Computers GmbH <tux@tuxedocomputers.com>
  
 Files: *
