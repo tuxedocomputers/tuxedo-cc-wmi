@@ -30,7 +30,7 @@
 
 MODULE_DESCRIPTION("WMI method control for TUXEDO laptops");
 MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
-MODULE_VERSION("0.1.0");
+MODULE_VERSION("0.1.1");
 MODULE_LICENSE("GPL");
 MODULE_ALIAS("wmi:" CLEVO_WMI_METHOD_GUID);
 
@@ -48,9 +48,12 @@ static long fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
     u32 result = 0;
     u32 argument = (u32) arg;
-    copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
+    const char *module_version = THIS_MODULE->version;
 
     switch (cmd) {
+        case R_MOD_VERSION:
+            copy_to_user((char *) arg, module_version, strlen(module_version) + 1);
+            break;
         case R_FANINFO1:
             result = clevo_wmi_evaluate(CLEVO_WMI_CMD_GET_FANINFO1, 0);
             copy_to_user((int32_t *) arg, &result, sizeof(result));
@@ -83,18 +86,23 @@ static long fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 
     switch (cmd) {
         case W_FANSPEED:
+            copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
             clevo_wmi_evaluate(CLEVO_WMI_CMD_SET_FANSPEED_VALUE, argument);
             break;
         case W_FANAUTO:
+            copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
             clevo_wmi_evaluate(CLEVO_WMI_CMD_SET_FANSPEED_AUTO, argument);
             break;
         case W_WEBCAM_SW:
+            copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
             clevo_wmi_evaluate(CLEVO_WMI_CMD_SET_WEBCAM_SW, argument);
             break;
         case W_FLIGHTMODE_SW:
+            copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
             clevo_wmi_evaluate(CLEVO_WMI_CMD_SET_FLIGHTMODE_SW, argument);
             break;
         case W_TOUCHPAD_SW:
+            copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
             clevo_wmi_evaluate(CLEVO_WMI_CMD_SET_TOUCHPAD_SW, argument);
             break;
     }

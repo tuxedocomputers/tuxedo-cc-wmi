@@ -91,5 +91,8 @@ exit 0
 
 
 %changelog
+* Mon Mar 30 2020 C Sandberg <tux@tuxedocomputers.com> 0.1.1-0
+- Added module version getter to ioctl api
+- Revised ioctl api
 * Fri Mar 27 2020 C Sandberg <tux@tuxedocomputers.com> 0.1.0-0
 - Module/package reborn as tuxedo-cc-wmi
