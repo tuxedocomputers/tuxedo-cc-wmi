@@ -91,6 +91,8 @@ exit 0
 
 
 %changelog
+* Mon Mar 31 2020 C Sandberg <tux@tuxedocomputers.com> 0.1.2-0
+- Fixed missing reference to tuxedo_wmi (module class)
 * Mon Mar 30 2020 C Sandberg <tux@tuxedocomputers.com> 0.1.1-0
 - Added module version getter to ioctl api
 - Revised ioctl api
