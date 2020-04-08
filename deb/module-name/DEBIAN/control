@@ -3,6 +3,8 @@ Version: x.x.x
 Section: admin
 Priority: optional
 Depends: dkms (>= 1.95)
+Conflicts: tuxedo-wmi (>= 2.0.0), tuxedo-wmi (<= 2.0.3)
+Replaces: tuxedo-wmi (>= 2.0.0), tuxedo-wmi (<= 2.0.3)
 Maintainer: TUXEDO Computers GmbH <tux@tuxedocomputers.com>
 Homepage: https://www.tuxedocomputers.com
 Architecture: all

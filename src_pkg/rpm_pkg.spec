@@ -27,9 +27,8 @@ Group:          Hardware/Other
 BuildArch:      noarch
 Url:            https://www.tuxedocomputers.com
 Source:         %{module}-%{version}.tar.bz2
-Provides:       %{module} = %{version}-%{release}
-Obsoletes:      %{module} < %{version}-%{release}
 Requires:       dkms >= 1.95
+Obsoletes:      tuxedo-wmi >= 2.0.0, tuxedo-wmi <= 2.0.3
 BuildRoot:      %{_tmppath}
 Packager:       Tomte <tux@tuxedocomputers.com>
 
@@ -91,6 +90,8 @@ exit 0
 
 
 %changelog
+* Wed Apr 8 2020 C Sandberg <tux@tuxedocomputers.com> 0.1.3-1
+- Add package dependencies on old named package
 * Mon Mar 31 2020 C Sandberg <tux@tuxedocomputers.com> 0.1.2-0
 - Fixed missing reference to tuxedo_wmi (module class)
 * Mon Mar 30 2020 C Sandberg <tux@tuxedocomputers.com> 0.1.1-0

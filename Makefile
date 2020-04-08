@@ -88,7 +88,7 @@ package-deb-clean:
 RPM_PACKAGE_NAME := $(MODULE_NAME)-$(VER)
 RPM_PACKAGE_SRC := rpm/SOURCES/$(RPM_PACKAGE_NAME)
 RPM_SPEC := rpm/SPECS/$(MODULE_NAME).spec
-RELEASE := 0
+RELEASE := 1
 
 package-rpm:
 	# Create folder source structure according to current version
