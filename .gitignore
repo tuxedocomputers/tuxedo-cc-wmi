@@ -9,4 +9,6 @@
 *.symvers
 *.order
 *.deb
-package_build/
+*.rpm
+rpm
+deb/tuxedo-cc-wmi-*
