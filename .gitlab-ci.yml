@@ -9,15 +9,13 @@ before_script:
   - apt-get install -qq -y dpkg dpkg-dev make rpm tar > /dev/null 2>&1
 
 stages:
-  - build
+  - build_package
 
 packaging:
-  stage: build
+  stage: build_package
   only:
     refs:
       - release
-    changes:
-      - dkms.conf
   script:
     - make package
     - mkdir $PACKAGES_FOLDER_NAME
