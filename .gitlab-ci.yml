@@ -15,8 +15,7 @@ packaging:
   stage: build
   only:
     refs:
-      - master
-      - development
+      - release
     changes:
       - dkms.conf
   script:
