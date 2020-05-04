@@ -36,6 +36,8 @@
 #define R_FLIGHTMODE_SW _IOR(MAGIC_READ, 0x14, int32_t*)
 #define R_TOUCHPAD_SW   _IOR(MAGIC_READ, 0x15, int32_t*)
 
+#define R_TF_BC         _IOW(MAGIC_READ, 0x91, u32*)
+
 // Write defines
 #define W_FANSPEED      _IOW(MAGIC_WRITE, 0x10, int32_t*)
 #define W_FANAUTO       _IOW(MAGIC_WRITE, 0x11, int32_t*)
@@ -43,5 +45,7 @@
 #define W_WEBCAM_SW     _IOW(MAGIC_WRITE, 0x12, int32_t*)
 #define W_FLIGHTMODE_SW _IOW(MAGIC_WRITE, 0x13, int32_t*)
 #define W_TOUCHPAD_SW   _IOW(MAGIC_WRITE, 0x14, int32_t*)
+
+#define W_TF_BC         _IOW(MAGIC_WRITE, 0x91, u32*)
 
 #endif

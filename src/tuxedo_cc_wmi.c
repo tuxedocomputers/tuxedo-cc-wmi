@@ -26,6 +26,7 @@
 #include <linux/cdev.h>
 #include <linux/uaccess.h>
 #include "clevo_wmi.h"
+#include "tongfang_wmi.h"
 #include "tuxedo_cc_wmi_ioctl.h"
 
 MODULE_DESCRIPTION("WMI method control for TUXEDO laptops");
@@ -33,6 +34,9 @@ MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
 MODULE_VERSION("0.1.3");
 MODULE_LICENSE("GPL");
 MODULE_ALIAS("wmi:" CLEVO_WMI_METHOD_GUID);
+MODULE_ALIAS("wmi:" UNIWILL_WMI_MGMT_GUID_BA);
+MODULE_ALIAS("wmi:" UNIWILL_WMI_MGMT_GUID_BB);
+MODULE_ALIAS("wmi:" UNIWILL_WMI_MGMT_GUID_BC);
 
 /*static int fop_open(struct inode *inode, struct file *file)
 {
@@ -49,6 +53,9 @@ static long fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
     u32 result = 0;
     u32 argument = (u32) arg;
     const char *module_version = THIS_MODULE->version;
+
+    u32 tf_arg[4];
+    u32 tf_result[8];
 
     switch (cmd) {
         case R_MOD_VERSION:
@@ -82,6 +89,11 @@ static long fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
             result = clevo_wmi_evaluate(CLEVO_WMI_CMD_GET_TOUCHPAD_SW, 0);
             copy_to_user((int32_t *) arg, &result, sizeof(result));
             break;
+        case R_TF_BC:
+            copy_from_user(&tf_arg, (void *) arg, sizeof(tf_arg));
+            result = tongfang_wmi_evaluate(tf_arg[0], tf_arg[1], tf_arg[2], tf_arg[3], 1, tf_result);
+            copy_to_user((void *) arg, &tf_result, sizeof(tf_result));
+            break;
     }
 
     switch (cmd) {
@@ -104,6 +116,11 @@ static long fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
         case W_TOUCHPAD_SW:
             copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
             clevo_wmi_evaluate(CLEVO_WMI_CMD_SET_TOUCHPAD_SW, argument);
+            break;
+        case W_TF_BC:
+            copy_from_user(&tf_arg, (void *) arg, sizeof(tf_arg));
+            result = tongfang_wmi_evaluate(tf_arg[0], tf_arg[1], tf_arg[2], tf_arg[3], 0, tf_result);
+            copy_to_user((void *) arg, &tf_result, sizeof(tf_result));
             break;
     }
     return 0;
