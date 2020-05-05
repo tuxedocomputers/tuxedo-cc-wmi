@@ -51,27 +51,33 @@ static int fop_release(struct inode *inode, struct file *file)
 static long fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
     u32 result = 0;
+    u32 copy_result;
     u32 argument = (u32) arg;
     const char *module_version = THIS_MODULE->version;
 
-    u32 tf_arg[4];
-    u32 tf_result[8];
+    u32 tf_arg[10];
+    u32 tf_result[10];
+    int i;
+    for (i = 0; i < 10; ++i) {
+        tf_result[i] = 0xdeadbeef;
+    }
+    
 
     switch (cmd) {
         case R_MOD_VERSION:
-            copy_to_user((char *) arg, module_version, strlen(module_version) + 1);
+            copy_result = copy_to_user((char *) arg, module_version, strlen(module_version) + 1);
             break;
         case R_FANINFO1:
             result = clevo_wmi_evaluate(CLEVO_WMI_CMD_GET_FANINFO1, 0);
-            copy_to_user((int32_t *) arg, &result, sizeof(result));
+            copy_result = copy_to_user((int32_t *) arg, &result, sizeof(result));
             break;
         case R_FANINFO2:
             result = clevo_wmi_evaluate(CLEVO_WMI_CMD_GET_FANINFO2, 0);
-            copy_to_user((int32_t *) arg, &result, sizeof(result));
+            copy_result = copy_to_user((int32_t *) arg, &result, sizeof(result));
             break;
         case R_FANINFO3:
             result = clevo_wmi_evaluate(CLEVO_WMI_CMD_GET_FANINFO3, 0);
-            copy_to_user((int32_t *) arg, &result, sizeof(result));
+            copy_result = copy_to_user((int32_t *) arg, &result, sizeof(result));
             break;
         /*case R_FANINFO4:
             result = clevo_wmi_evaluate(CLEVO_WMI_CMD_GET_FANINFO4, 0);
@@ -79,48 +85,49 @@ static long fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
             break;*/
         case R_WEBCAM_SW:
             result = clevo_wmi_evaluate(CLEVO_WMI_CMD_GET_WEBCAM_SW, 0);
-            copy_to_user((int32_t *) arg, &result, sizeof(result));
+            copy_result = copy_to_user((int32_t *) arg, &result, sizeof(result));
             break;
         case R_FLIGHTMODE_SW:
             result = clevo_wmi_evaluate(CLEVO_WMI_CMD_GET_FLIGHTMODE_SW, 0);
-            copy_to_user((int32_t *) arg, &result, sizeof(result));
+            copy_result = copy_to_user((int32_t *) arg, &result, sizeof(result));
             break;
         case R_TOUCHPAD_SW:
             result = clevo_wmi_evaluate(CLEVO_WMI_CMD_GET_TOUCHPAD_SW, 0);
-            copy_to_user((int32_t *) arg, &result, sizeof(result));
+            copy_result = copy_to_user((int32_t *) arg, &result, sizeof(result));
             break;
         case R_TF_BC:
-            copy_from_user(&tf_arg, (void *) arg, sizeof(tf_arg));
+            copy_result = copy_from_user(&tf_arg, (void *) arg, sizeof(tf_arg));
+            pr_info("R_TF_BC args [%0#2x, %0#2x, %0#2x, %0#2x]\n", tf_arg[0], tf_arg[1], tf_arg[2], tf_arg[3]);
             result = tongfang_wmi_evaluate(tf_arg[0], tf_arg[1], tf_arg[2], tf_arg[3], 1, tf_result);
-            copy_to_user((void *) arg, &tf_result, sizeof(tf_result));
+            copy_result = copy_to_user((void *) arg, &tf_result, sizeof(tf_result));
             break;
     }
 
     switch (cmd) {
         case W_FANSPEED:
-            copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
+            copy_result = copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
             clevo_wmi_evaluate(CLEVO_WMI_CMD_SET_FANSPEED_VALUE, argument);
             break;
         case W_FANAUTO:
-            copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
+            copy_result = copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
             clevo_wmi_evaluate(CLEVO_WMI_CMD_SET_FANSPEED_AUTO, argument);
             break;
         case W_WEBCAM_SW:
-            copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
+            copy_result = copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
             clevo_wmi_evaluate(CLEVO_WMI_CMD_SET_WEBCAM_SW, argument);
             break;
         case W_FLIGHTMODE_SW:
-            copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
+            copy_result = copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
             clevo_wmi_evaluate(CLEVO_WMI_CMD_SET_FLIGHTMODE_SW, argument);
             break;
         case W_TOUCHPAD_SW:
-            copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
+            copy_result = copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
             clevo_wmi_evaluate(CLEVO_WMI_CMD_SET_TOUCHPAD_SW, argument);
             break;
         case W_TF_BC:
-            copy_from_user(&tf_arg, (void *) arg, sizeof(tf_arg));
+            copy_result = copy_from_user(&tf_arg, (void *) arg, sizeof(tf_arg));
             result = tongfang_wmi_evaluate(tf_arg[0], tf_arg[1], tf_arg[2], tf_arg[3], 0, tf_result);
-            copy_to_user((void *) arg, &tf_result, sizeof(tf_result));
+            copy_result = copy_to_user((void *) arg, &tf_result, sizeof(tf_result));
             break;
     }
     return 0;

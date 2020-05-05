@@ -23,7 +23,7 @@
 #define UNIWILL_WMI_MGMT_GUID_BB            "ABBC0F6E-8EA1-11D1-00A0-C90629100000"
 #define UNIWILL_WMI_MGMT_GUID_BC            "ABBC0F6F-8EA1-11D1-00A0-C90629100000"
 
-static u32 tongfang_wmi_evaluate(u8 addr_high, u8 addr_low, u8 data_high, u8 data_low, u8 read_flag, u32 *return_buffer)
+static u32 tongfang_wmi_evaluate(u8 addr_low, u8 addr_high, u8 data_low, u8 data_high, u8 read_flag, u32 *return_buffer)
 {
     acpi_status status;
     union acpi_object *out_acpi;
@@ -32,35 +32,31 @@ static u32 tongfang_wmi_evaluate(u8 addr_high, u8 addr_low, u8 data_high, u8 dat
     u8 wmi_instance = 0x00;
     u32 wmi_method_id = 0x04;
 
-    struct wmi_args {
-        u32 arg0;
-        u32 arg1;
-        u32 arg2;
-        u32 arg3;
-        u32 arg4;
-        u32 arg5;
-        u32 arg6;
-        u32 arg7;
-        u32 arg8;
-    } wmi_arg = {
-        .arg0 = addr_high,
-        .arg1 = addr_low,
-        .arg2 = data_high,
-        .arg3 = data_low,
-        .arg4 = 0x00,
-        .arg5 = 0x00,
-        .arg6 = 0x00,
-        .arg7 = 0x00,
-        .arg8 = 0x00,
-    };
+    u32 *wmi_arg = (u32 *) kmalloc(sizeof(u32)*10, GFP_KERNEL);
 
-    struct acpi_buffer in = { (acpi_size) sizeof(wmi_arg), &wmi_arg};
+    struct acpi_buffer in = { (acpi_size) sizeof(wmi_arg), wmi_arg};
     struct acpi_buffer out = { ACPI_ALLOCATE_BUFFER, NULL };
 
+    u8 *wmi_arg_bytes = (u8 *) wmi_arg;
+
+    wmi_arg[0] = 0x00;
+    wmi_arg[1] = 0x00;
+    wmi_arg[2] = 0x00;
+    wmi_arg[3] = 0x00;
+    wmi_arg[4] = 0x00;
+    wmi_arg[5] = 0x00;
+    wmi_arg[6] = 0x00;
+    wmi_arg[7] = 0x00;
+    wmi_arg[8] = 0x00;
+    wmi_arg[9] = 0x00;
+
+    wmi_arg_bytes[0] = addr_low;
+    wmi_arg_bytes[1] = addr_high;
+    wmi_arg_bytes[2] = data_low;
+    wmi_arg_bytes[3] = data_high;
+
     if (read_flag != 0) {
-        wmi_arg.arg5 = 0x01;
-    } else {
-        wmi_arg.arg5 = 0x00;
+        wmi_arg_bytes[5] = 0x01;
     }
     
     status = wmi_evaluate_method(UNIWILL_WMI_MGMT_GUID_BC, wmi_instance, wmi_method_id, &in, &out);
@@ -76,6 +72,7 @@ static u32 tongfang_wmi_evaluate(u8 addr_high, u8 addr_low, u8 data_high, u8 dat
     }
 
     kfree(out_acpi);
+    kfree(wmi_arg);
 
     return e_result;
 }
