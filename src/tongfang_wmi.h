@@ -23,17 +23,25 @@
 #define UNIWILL_WMI_MGMT_GUID_BB            "ABBC0F6E-8EA1-11D1-00A0-C90629100000"
 #define UNIWILL_WMI_MGMT_GUID_BC            "ABBC0F6F-8EA1-11D1-00A0-C90629100000"
 
-union uw_return {
+union uw_ec_read_return {
     u32 dword;
     struct {
-        u8 data_high;
         u8 data_low;
-        u8 addr_high;
-        u8 addr_low;
+        u8 data_high;
     } bytes;
 };
 
-static u32 tongfang_wmi_evaluate(u8 addr_low, u8 addr_high, u8 data_low, u8 data_high, u8 read_flag, u32 *return_buffer)
+union uw_ec_write_return {
+    u32 dword;
+    struct {
+        u8 addr_low;
+        u8 addr_high;
+        u8 data_low;
+        u8 data_high;
+    } bytes;
+};
+
+static u32 uniwill_wmi_ec_evaluate(u8 addr_low, u8 addr_high, u8 data_low, u8 data_high, u8 read_flag, u32 *return_buffer)
 {
     acpi_status status;
     union acpi_object *out_acpi;
@@ -71,7 +79,7 @@ static u32 tongfang_wmi_evaluate(u8 addr_low, u8 addr_high, u8 data_low, u8 data
         e_result = (u32) out_acpi->integer.value;
     }*/
     if (ACPI_FAILURE(status)) {
-        pr_err("tongfang_wmi.h: Error evaluating method\n");
+        pr_err("uniwill_wmi.h: Error evaluating method\n");
         e_result = -EIO;
     }
 
@@ -79,4 +87,20 @@ static u32 tongfang_wmi_evaluate(u8 addr_low, u8 addr_high, u8 data_low, u8 data
     kfree(wmi_arg);
 
     return e_result;
+}
+
+static u32 uniwill_wmi_ec_read(u8 addr_low, u8 addr_high, union uw_ec_read_return *output)
+{
+    u32 uw_data[10];
+    u32 ret = uniwill_wmi_ec_evaluate(addr_low, addr_high, 0x00, 0x00, 1, uw_data);
+    output->dword = uw_data[0];
+    return ret;
+}
+
+static u32 uniwill_wmi_ec_write(u8 addr_low, u8 addr_high, u8 data_low, u8 data_high, union uw_ec_write_return *output)
+{
+    u32 uw_data[10];
+    u32 ret = uniwill_wmi_ec_evaluate(addr_low, addr_high, data_low, data_high, 0, uw_data);
+    output->dword = uw_data[0];
+    return ret;
 }

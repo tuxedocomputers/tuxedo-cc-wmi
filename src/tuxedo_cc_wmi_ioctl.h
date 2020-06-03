@@ -29,7 +29,7 @@
 
 
 // General
-#define R_MOD_VERSION   _IOR(MAGIC_READ_CL, 0x00, char*)
+#define R_MOD_VERSION   _IOR(IOCTL_MAGIC, 0x00, char*)
 
 /**
  * Clevo interface
@@ -45,7 +45,7 @@
 #define R_FLIGHTMODE_SW _IOR(MAGIC_READ_CL, 0x14, int32_t*)
 #define R_TOUCHPAD_SW   _IOR(MAGIC_READ_CL, 0x15, int32_t*)
 
-#define R_TF_BC         _IOW(MAGIC_READ_CL, 0x91, u32*)
+#define R_TF_BC         _IOW(MAGIC_READ_CL, 0x91, uint32_t*)
 
 // Write
 #define W_FANSPEED      _IOW(MAGIC_WRITE_CL, 0x10, int32_t*)
@@ -55,7 +55,7 @@
 #define W_FLIGHTMODE_SW _IOW(MAGIC_WRITE_CL, 0x13, int32_t*)
 #define W_TOUCHPAD_SW   _IOW(MAGIC_WRITE_CL, 0x14, int32_t*)
 
-#define W_TF_BC         _IOW(MAGIC_WRITE_CL, 0x91, u32*)
+#define W_TF_BC         _IOW(MAGIC_WRITE_CL, 0x91, uint32_t*)
 
 
 /**
@@ -63,9 +63,13 @@
  */
 
 // Read
-#define R_UW_FANSPEED   _IOR(MAGIC_READ_UW, 0x10, int32_t*)
+#define R_UW_FANSPEED       _IOR(MAGIC_READ_UW, 0x10, int32_t*)
+#define R_UW_MODE           _IOR(MAGIC_READ_UW, 0x11, int32_t*)
+#define R_UW_MODE_ENABLE    _IOR(MAGIC_READ_UW, 0x12, int32_t*)
 
 // Write
-#define W_UW_FANSPEED   _IOW(MAGIC_WRITE_UW, 0x10, int32_t*)
+#define W_UW_FANSPEED       _IOW(MAGIC_WRITE_UW, 0x10, int32_t*)
+#define W_UW_MODE           _IOW(MAGIC_WRITE_UW, 0x11, int32_t*)
+#define W_UW_MODE_ENABLE    _IOW(MAGIC_WRITE_UW, 0x12, int32_t*)
 
 #endif

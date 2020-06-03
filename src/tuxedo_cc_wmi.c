@@ -116,7 +116,8 @@ static long uniwill_ioctl_interface(struct file *file, unsigned int cmd, unsigne
     u32 result = 0;
     u32 copy_result;
     u32 argument;
-    union uw_return reg_return;
+    union uw_ec_read_return reg_read_return;
+    union uw_ec_write_return reg_write_return;
 
     u32 tf_arg[10];
     u32 tf_result[10];
@@ -127,13 +128,16 @@ static long uniwill_ioctl_interface(struct file *file, unsigned int cmd, unsigne
 
     switch (cmd) {
         case R_UW_FANSPEED:
-            tongfang_wmi_evaluate(0x04, 0x18, 0x00, 0x00, 1, tf_result);
+            uniwill_wmi_ec_read(0x04, 0x18, &reg_read_return);
+            pr_info("data_high %0#2x\n", reg_read_return.bytes.data_high);
+            pr_info("data_low %0#2x\n", reg_read_return.bytes.data_low);
+            result = reg_read_return.bytes.data_low;
             copy_result = copy_to_user((void *) arg, &result, sizeof(result));
             break;
         case R_TF_BC:
             copy_result = copy_from_user(&tf_arg, (void *) arg, sizeof(tf_arg));
             pr_info("R_TF_BC args [%0#2x, %0#2x, %0#2x, %0#2x]\n", tf_arg[0], tf_arg[1], tf_arg[2], tf_arg[3]);
-            result = tongfang_wmi_evaluate(tf_arg[0], tf_arg[1], tf_arg[2], tf_arg[3], 1, tf_result);
+            result = uniwill_wmi_ec_evaluate(tf_arg[0], tf_arg[1], tf_arg[2], tf_arg[3], 1, tf_result);
             copy_result = copy_to_user((void *) arg, &tf_result, sizeof(tf_result));
             break;
     }
@@ -144,21 +148,24 @@ static long uniwill_ioctl_interface(struct file *file, unsigned int cmd, unsigne
             copy_result = copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
 
             // Check current mode
-            tongfang_wmi_evaluate(0x51, 0x07, 0x00, 0x00, 1, tf_result);
-            reg_return.dword = tf_result[0];
-            if (reg_return.bytes.data_low != 0x40) {
+            uniwill_wmi_ec_read(0x51, 0x07, &reg_read_return);
+            if (reg_read_return.bytes.data_low != 0x40) {
                 // If not "full fan mode" (ie. 0x40) switch to it (required for fancontrol)
-                tongfang_wmi_evaluate(0x41, 0x07, 0x40, reg_return.bytes.data_high, 0, tf_result);
+                uniwill_wmi_ec_write(0x41, 0x07, 0x40, reg_read_return.bytes.data_high, &reg_write_return);
             }
             // Set speed
-            tongfang_wmi_evaluate(0x04, 0x18, 0x00, 0x00, 1, tf_result);
-            reg_return.dword = tf_result[0];
-            tongfang_wmi_evaluate(0x04, 0x18, argument & 0xff, reg_return.bytes.data_high, 1, tf_result);
+            uniwill_wmi_ec_read(0x04, 0x18, &reg_read_return);
+            uniwill_wmi_ec_write(0x04, 0x18, argument & 0xff, reg_read_return.bytes.data_high, &reg_write_return);
             break;
         case W_TF_BC:
             copy_result = copy_from_user(&tf_arg, (void *) arg, sizeof(tf_arg));
-            result = tongfang_wmi_evaluate(tf_arg[0], tf_arg[1], tf_arg[2], tf_arg[3], 0, tf_result);
+            result = uniwill_wmi_ec_evaluate(tf_arg[0], tf_arg[1], tf_arg[2], tf_arg[3], 0, tf_result);
             copy_result = copy_to_user((void *) arg, &tf_result, sizeof(tf_result));
+            reg_write_return.dword = tf_result[0];
+            pr_info("data_high %0#2x\n", reg_write_return.bytes.data_high);
+            pr_info("data_low %0#2x\n", reg_write_return.bytes.data_low);
+            pr_info("addr_high %0#2x\n", reg_write_return.bytes.addr_high);
+            pr_info("addr_low %0#2x\n", reg_write_return.bytes.addr_low);
             break;
     }
 
