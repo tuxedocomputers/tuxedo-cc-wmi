@@ -129,8 +129,16 @@ static long uniwill_ioctl_interface(struct file *file, unsigned int cmd, unsigne
     switch (cmd) {
         case R_UW_FANSPEED:
             uniwill_wmi_ec_read(0x04, 0x18, &reg_read_return);
-            pr_info("data_high %0#2x\n", reg_read_return.bytes.data_high);
-            pr_info("data_low %0#2x\n", reg_read_return.bytes.data_low);
+            result = reg_read_return.bytes.data_low;
+            copy_result = copy_to_user((void *) arg, &result, sizeof(result));
+            break;
+        case R_UW_MODE:
+            uniwill_wmi_ec_read(0x51, 0x07, &reg_read_return);
+            result = reg_read_return.bytes.data_low;
+            copy_result = copy_to_user((void *) arg, &result, sizeof(result));
+            break;
+        case R_UW_MODE_ENABLE:
+            uniwill_wmi_ec_read(0x41, 0x07, &reg_read_return);
             result = reg_read_return.bytes.data_low;
             copy_result = copy_to_user((void *) arg, &result, sizeof(result));
             break;
@@ -156,6 +164,16 @@ static long uniwill_ioctl_interface(struct file *file, unsigned int cmd, unsigne
             // Set speed
             uniwill_wmi_ec_read(0x04, 0x18, &reg_read_return);
             uniwill_wmi_ec_write(0x04, 0x18, argument & 0xff, reg_read_return.bytes.data_high, &reg_write_return);
+            break;
+        case W_UW_MODE:
+            copy_result = copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
+            uniwill_wmi_ec_read(0x51, 0x07, &reg_read_return);
+            uniwill_wmi_ec_write(0x51, 0x07, argument & 0xff, reg_read_return.bytes.data_high, &reg_write_return);
+            break;
+        case W_UW_MODE_ENABLE:
+            copy_result = copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
+            uniwill_wmi_ec_read(0x41, 0x07, &reg_read_return);
+            uniwill_wmi_ec_write(0x41, 0x07, argument & 0xff, reg_read_return.bytes.data_high, &reg_write_return);
             break;
         case W_TF_BC:
             copy_result = copy_from_user(&tf_arg, (void *) arg, sizeof(tf_arg));
