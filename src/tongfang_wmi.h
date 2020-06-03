@@ -23,33 +23,36 @@
 #define UNIWILL_WMI_MGMT_GUID_BB            "ABBC0F6E-8EA1-11D1-00A0-C90629100000"
 #define UNIWILL_WMI_MGMT_GUID_BC            "ABBC0F6F-8EA1-11D1-00A0-C90629100000"
 
+union uw_return {
+    u32 dword;
+    struct {
+        u8 data_high;
+        u8 data_low;
+        u8 addr_high;
+        u8 addr_low;
+    } bytes;
+};
+
 static u32 tongfang_wmi_evaluate(u8 addr_low, u8 addr_high, u8 data_low, u8 data_high, u8 read_flag, u32 *return_buffer)
 {
     acpi_status status;
     union acpi_object *out_acpi;
     u32 e_result = 0;
 
-    u8 wmi_instance = 0x00;
-    u32 wmi_method_id = 0x04;
-
+    // Kernel buffer for input argument
     u32 *wmi_arg = (u32 *) kmalloc(sizeof(u32)*10, GFP_KERNEL);
-
-    struct acpi_buffer in = { (acpi_size) sizeof(wmi_arg), wmi_arg};
-    struct acpi_buffer out = { ACPI_ALLOCATE_BUFFER, NULL };
-
+    // Byte reference to the input buffer
     u8 *wmi_arg_bytes = (u8 *) wmi_arg;
 
-    wmi_arg[0] = 0x00;
-    wmi_arg[1] = 0x00;
-    wmi_arg[2] = 0x00;
-    wmi_arg[3] = 0x00;
-    wmi_arg[4] = 0x00;
-    wmi_arg[5] = 0x00;
-    wmi_arg[6] = 0x00;
-    wmi_arg[7] = 0x00;
-    wmi_arg[8] = 0x00;
-    wmi_arg[9] = 0x00;
+    u8 wmi_instance = 0x00;
+    u32 wmi_method_id = 0x04;
+    struct acpi_buffer wmi_in = { (acpi_size) sizeof(wmi_arg), wmi_arg};
+    struct acpi_buffer wmi_out = { ACPI_ALLOCATE_BUFFER, NULL };
 
+    // Zero input buffer
+    memset(wmi_arg, 0x00, 10 * sizeof(u32));
+
+    // Configure the input buffer
     wmi_arg_bytes[0] = addr_low;
     wmi_arg_bytes[1] = addr_high;
     wmi_arg_bytes[2] = data_low;
@@ -59,16 +62,17 @@ static u32 tongfang_wmi_evaluate(u8 addr_low, u8 addr_high, u8 data_low, u8 data
         wmi_arg_bytes[5] = 0x01;
     }
     
-    status = wmi_evaluate_method(UNIWILL_WMI_MGMT_GUID_BC, wmi_instance, wmi_method_id, &in, &out);
-    out_acpi = (union acpi_object *)out.pointer;
-    if (out_acpi && out_acpi->type == ACPI_TYPE_INTEGER) {
-        e_result = (u32) out_acpi->integer.value;
-    } else if (out_acpi && out_acpi->type == ACPI_TYPE_BUFFER) {
+    status = wmi_evaluate_method(UNIWILL_WMI_MGMT_GUID_BC, wmi_instance, wmi_method_id, &wmi_in, &wmi_out);
+    out_acpi = (union acpi_object *) wmi_out.pointer;
+
+    if (out_acpi && out_acpi->type == ACPI_TYPE_BUFFER) {
         memcpy(return_buffer, out_acpi->buffer.pointer, out_acpi->buffer.length);
-        e_result = 0xd00df00d;
-    }
+    } /* else if (out_acpi && out_acpi->type == ACPI_TYPE_INTEGER) {
+        e_result = (u32) out_acpi->integer.value;
+    }*/
     if (ACPI_FAILURE(status)) {
-        printk(KERN_INFO "tongfang_wmi.h: Error evaluating method\n");
+        pr_err("tongfang_wmi.h: Error evaluating method\n");
+        e_result = -EIO;
     }
 
     kfree(out_acpi);

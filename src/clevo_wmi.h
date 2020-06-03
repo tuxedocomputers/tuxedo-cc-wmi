@@ -20,6 +20,7 @@
 #include <linux/wmi.h>
 
 #define CLEVO_WMI_METHOD_GUID               "ABBC0F6D-8EA1-11D1-00A0-C90629100000"
+#define CLEVO_WMI_EVENT_GUID                "ABBC0F6B-8EA1-11D1-00A0-C90629100000"
 
 // The clevo get commands expect no parameters
 #define CLEVO_WMI_CMD_GET_FANINFO1          0x63
@@ -71,4 +72,31 @@ static u32 clevo_wmi_evaluate(u8 cmd, u32 arg)
     kfree(out_acpi);
 
     return e_result;
+}
+
+static u32 clevo_identify(void) {
+    int result;
+
+    if (!wmi_has_guid(CLEVO_WMI_EVENT_GUID))
+    {
+        pr_debug("probe: Clevo event guid missing\n");
+        return -ENODEV;
+    }
+
+    if (!wmi_has_guid(CLEVO_WMI_METHOD_GUID))
+    {
+        pr_debug("probe: Clevo method guid missing\n");
+        return -ENODEV;
+    }
+
+    // Since the WMI GUIDs aren't unique let's (at least)
+    // check the return of some "known existing general" method
+    result = clevo_wmi_evaluate(0x52, 0);
+    if (result == 0xffffffff)
+    {
+        pr_debug("probe: Clevo GUIDs present but method returned unexpected value\n");
+        return -ENODEV;
+    }
+
+    return 0;
 }

@@ -48,25 +48,13 @@ static int fop_release(struct inode *inode, struct file *file)
     return 0;
 }*/
 
-static long fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+static long clevo_ioctl_interface(struct file *file, unsigned int cmd, unsigned long arg)
 {
     u32 result = 0;
     u32 copy_result;
     u32 argument = (u32) arg;
-    const char *module_version = THIS_MODULE->version;
-
-    u32 tf_arg[10];
-    u32 tf_result[10];
-    int i;
-    for (i = 0; i < 10; ++i) {
-        tf_result[i] = 0xdeadbeef;
-    }
     
-
     switch (cmd) {
-        case R_MOD_VERSION:
-            copy_result = copy_to_user((char *) arg, module_version, strlen(module_version) + 1);
-            break;
         case R_FANINFO1:
             result = clevo_wmi_evaluate(CLEVO_WMI_CMD_GET_FANINFO1, 0);
             copy_result = copy_to_user((int32_t *) arg, &result, sizeof(result));
@@ -95,12 +83,6 @@ static long fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
             result = clevo_wmi_evaluate(CLEVO_WMI_CMD_GET_TOUCHPAD_SW, 0);
             copy_result = copy_to_user((int32_t *) arg, &result, sizeof(result));
             break;
-        case R_TF_BC:
-            copy_result = copy_from_user(&tf_arg, (void *) arg, sizeof(tf_arg));
-            pr_info("R_TF_BC args [%0#2x, %0#2x, %0#2x, %0#2x]\n", tf_arg[0], tf_arg[1], tf_arg[2], tf_arg[3]);
-            result = tongfang_wmi_evaluate(tf_arg[0], tf_arg[1], tf_arg[2], tf_arg[3], 1, tf_result);
-            copy_result = copy_to_user((void *) arg, &tf_result, sizeof(tf_result));
-            break;
     }
 
     switch (cmd) {
@@ -124,12 +106,83 @@ static long fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
             copy_result = copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
             clevo_wmi_evaluate(CLEVO_WMI_CMD_SET_TOUCHPAD_SW, argument);
             break;
+    }
+
+    return 0;
+}
+
+static long uniwill_ioctl_interface(struct file *file, unsigned int cmd, unsigned long arg)
+{
+    u32 result = 0;
+    u32 copy_result;
+    u32 argument;
+    union uw_return reg_return;
+
+    u32 tf_arg[10];
+    u32 tf_result[10];
+    int i;
+    for (i = 0; i < 10; ++i) {
+        tf_result[i] = 0xdeadbeef;
+    }
+
+    switch (cmd) {
+        case R_UW_FANSPEED:
+            tongfang_wmi_evaluate(0x04, 0x18, 0x00, 0x00, 1, tf_result);
+            copy_result = copy_to_user((void *) arg, &result, sizeof(result));
+            break;
+        case R_TF_BC:
+            copy_result = copy_from_user(&tf_arg, (void *) arg, sizeof(tf_arg));
+            pr_info("R_TF_BC args [%0#2x, %0#2x, %0#2x, %0#2x]\n", tf_arg[0], tf_arg[1], tf_arg[2], tf_arg[3]);
+            result = tongfang_wmi_evaluate(tf_arg[0], tf_arg[1], tf_arg[2], tf_arg[3], 1, tf_result);
+            copy_result = copy_to_user((void *) arg, &tf_result, sizeof(tf_result));
+            break;
+    }
+
+    switch (cmd) {
+        case W_UW_FANSPEED:
+            // Get fan speed argument
+            copy_result = copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
+
+            // Check current mode
+            tongfang_wmi_evaluate(0x51, 0x07, 0x00, 0x00, 1, tf_result);
+            reg_return.dword = tf_result[0];
+            if (reg_return.bytes.data_low != 0x40) {
+                // If not "full fan mode" (ie. 0x40) switch to it (required for fancontrol)
+                tongfang_wmi_evaluate(0x41, 0x07, 0x40, reg_return.bytes.data_high, 0, tf_result);
+            }
+            // Set speed
+            tongfang_wmi_evaluate(0x04, 0x18, 0x00, 0x00, 1, tf_result);
+            reg_return.dword = tf_result[0];
+            tongfang_wmi_evaluate(0x04, 0x18, argument & 0xff, reg_return.bytes.data_high, 1, tf_result);
+            break;
         case W_TF_BC:
             copy_result = copy_from_user(&tf_arg, (void *) arg, sizeof(tf_arg));
             result = tongfang_wmi_evaluate(tf_arg[0], tf_arg[1], tf_arg[2], tf_arg[3], 0, tf_result);
             copy_result = copy_to_user((void *) arg, &tf_result, sizeof(tf_result));
             break;
     }
+
+    return 0;
+}
+
+static long fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+{
+    u32 status;
+    // u32 result = 0;
+    u32 copy_result;
+
+    const char *module_version = THIS_MODULE->version;
+    switch (cmd) {
+        case R_MOD_VERSION:
+            copy_result = copy_to_user((char *) arg, module_version, strlen(module_version) + 1);
+            break;
+    }
+
+    status = clevo_ioctl_interface(file, cmd, arg);
+    if (status != 0) return status;
+    status = uniwill_ioctl_interface(file, cmd, arg);
+    if (status != 0) return status;
+
     return 0;
 }
 
