@@ -109,7 +109,7 @@ static u32 uniwill_wmi_ec_write(u8 addr_low, u8 addr_high, u8 data_low, u8 data_
     return ret;
 }
 
-static u32 uniwill_identify()
+static u32 uniwill_identify(void)
 {
     int status;
 

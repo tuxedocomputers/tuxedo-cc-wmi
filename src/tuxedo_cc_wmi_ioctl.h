@@ -31,6 +31,9 @@
 // General
 #define R_MOD_VERSION   _IOR(IOCTL_MAGIC, 0x00, char*)
 
+#define R_HWCHECK_CL    _IOR(IOCTL_MAGIC, 0x05, char*)
+#define R_HWCHECK_UW    _IOR(IOCTL_MAGIC, 0x06, char*)
+
 /**
  * Clevo interface
  */

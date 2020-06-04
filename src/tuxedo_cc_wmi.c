@@ -38,6 +38,10 @@ MODULE_ALIAS("wmi:" UNIWILL_WMI_MGMT_GUID_BA);
 MODULE_ALIAS("wmi:" UNIWILL_WMI_MGMT_GUID_BB);
 MODULE_ALIAS("wmi:" UNIWILL_WMI_MGMT_GUID_BC);
 
+// Initialized in module init, global for ioctl interface
+static u32 id_check_clevo;
+static u32 id_check_uniwill;
+
 /*static int fop_open(struct inode *inode, struct file *file)
 {
     return 0;
@@ -205,6 +209,12 @@ static long fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
         case R_MOD_VERSION:
             copy_result = copy_to_user((char *) arg, module_version, strlen(module_version) + 1);
             break;
+        case R_HWCHECK_CL:
+            copy_result = copy_to_user((void *) arg, (void *) &id_check_clevo, sizeof(id_check_clevo));
+            break;
+        case R_HWCHECK_UW:
+            copy_result = copy_to_user((void *) arg, (void *) &id_check_uniwill, sizeof(id_check_uniwill));
+            break;
     }
 
     status = clevo_ioctl_interface(file, cmd, arg);
@@ -231,26 +241,28 @@ static int __init tuxedo_cc_wmi_init(void)
 {
     int err;
 
-    // Only initialize if WMI GUID exists
+    // Only initialize if applicable hardware is found
     // This is not hotpluggable so can be done in module init
-    if (wmi_has_guid(CLEVO_WMI_METHOD_GUID)) {
-        err = alloc_chrdev_region(&tuxedo_cc_wmi_device_handle, 0, 1, "tuxedo_cc_wmi_cdev");
-        if (err != 0) {
-            pr_err("Failed to allocate chrdev region\n");
-            return err;
-        }
-        cdev_init(&tuxedo_cc_wmi_cdev, &fops_dev);
-        err = (cdev_add(&tuxedo_cc_wmi_cdev, tuxedo_cc_wmi_device_handle, 1));
-        if (err < 0) {
-            pr_err("Failed to add cdev\n");
-            unregister_chrdev_region(tuxedo_cc_wmi_device_handle, 1);
-        }
-        tuxedo_cc_wmi_device_class = class_create(THIS_MODULE, "tuxedo_cc_wmi");
-        device_create(tuxedo_cc_wmi_device_class, NULL, tuxedo_cc_wmi_device_handle, NULL, "tuxedo_cc_wmi");
-        pr_debug("Successfully initialized\n");
-    } else {
-        pr_debug("Expected GUID (%s) not found, module inactive\n", CLEVO_WMI_METHOD_GUID);
+    id_check_clevo = clevo_identify();
+    id_check_uniwill = uniwill_identify();
+
+    if (id_check_clevo != 0 || id_check_uniwill != 0) {
+        pr_debug("No matching hardware found\n");
     }
+    err = alloc_chrdev_region(&tuxedo_cc_wmi_device_handle, 0, 1, "tuxedo_cc_wmi_cdev");
+    if (err != 0) {
+        pr_err("Failed to allocate chrdev region\n");
+        return err;
+    }
+    cdev_init(&tuxedo_cc_wmi_cdev, &fops_dev);
+    err = (cdev_add(&tuxedo_cc_wmi_cdev, tuxedo_cc_wmi_device_handle, 1));
+    if (err < 0) {
+        pr_err("Failed to add cdev\n");
+        unregister_chrdev_region(tuxedo_cc_wmi_device_handle, 1);
+    }
+    tuxedo_cc_wmi_device_class = class_create(THIS_MODULE, "tuxedo_cc_wmi");
+    device_create(tuxedo_cc_wmi_device_class, NULL, tuxedo_cc_wmi_device_handle, NULL, "tuxedo_cc_wmi");
+    pr_debug("Module init successful\n");
     
     return 0;
 }
