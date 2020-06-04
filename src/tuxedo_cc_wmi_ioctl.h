@@ -45,7 +45,9 @@
 #define R_FLIGHTMODE_SW _IOR(MAGIC_READ_CL, 0x14, int32_t*)
 #define R_TOUCHPAD_SW   _IOR(MAGIC_READ_CL, 0x15, int32_t*)
 
+#ifdef DEBUG
 #define R_TF_BC         _IOW(MAGIC_READ_CL, 0x91, uint32_t*)
+#endif
 
 // Write
 #define W_FANSPEED      _IOW(MAGIC_WRITE_CL, 0x10, int32_t*)
@@ -55,8 +57,9 @@
 #define W_FLIGHTMODE_SW _IOW(MAGIC_WRITE_CL, 0x13, int32_t*)
 #define W_TOUCHPAD_SW   _IOW(MAGIC_WRITE_CL, 0x14, int32_t*)
 
+#ifdef DEBUG
 #define W_TF_BC         _IOW(MAGIC_WRITE_CL, 0x91, uint32_t*)
-
+#endif
 
 /**
  * Uniwill interface
