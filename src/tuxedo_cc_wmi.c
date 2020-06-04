@@ -123,12 +123,14 @@ static long uniwill_ioctl_interface(struct file *file, unsigned int cmd, unsigne
     union uw_ec_read_return reg_read_return;
     union uw_ec_write_return reg_write_return;
 
-    u32 tf_arg[10];
-    u32 tf_result[10];
+#ifdef DEBUG
+    u32 uw_arg[10];
+    u32 uw_result[10];
     int i;
     for (i = 0; i < 10; ++i) {
-        tf_result[i] = 0xdeadbeef;
+        uw_result[i] = 0xdeadbeef;
     }
+#endif
 
     switch (cmd) {
         case R_UW_FANSPEED:
@@ -148,10 +150,10 @@ static long uniwill_ioctl_interface(struct file *file, unsigned int cmd, unsigne
             break;
 #ifdef DEBUG
         case R_TF_BC:
-            copy_result = copy_from_user(&tf_arg, (void *) arg, sizeof(tf_arg));
-            pr_info("R_TF_BC args [%0#2x, %0#2x, %0#2x, %0#2x]\n", tf_arg[0], tf_arg[1], tf_arg[2], tf_arg[3]);
-            result = uniwill_wmi_ec_evaluate(tf_arg[0], tf_arg[1], tf_arg[2], tf_arg[3], 1, tf_result);
-            copy_result = copy_to_user((void *) arg, &tf_result, sizeof(tf_result));
+            copy_result = copy_from_user(&uw_arg, (void *) arg, sizeof(uw_arg));
+            pr_info("R_TF_BC args [%0#2x, %0#2x, %0#2x, %0#2x]\n", uw_arg[0], uw_arg[1], uw_arg[2], uw_arg[3]);
+            result = uniwill_wmi_ec_evaluate(uw_arg[0], uw_arg[1], uw_arg[2], uw_arg[3], 1, uw_result);
+            copy_result = copy_to_user((void *) arg, &uw_result, sizeof(uw_result));
             break;
 #endif
     }
@@ -183,10 +185,10 @@ static long uniwill_ioctl_interface(struct file *file, unsigned int cmd, unsigne
             break;
 #ifdef DEBUG
         case W_TF_BC:
-            copy_result = copy_from_user(&tf_arg, (void *) arg, sizeof(tf_arg));
-            result = uniwill_wmi_ec_evaluate(tf_arg[0], tf_arg[1], tf_arg[2], tf_arg[3], 0, tf_result);
-            copy_result = copy_to_user((void *) arg, &tf_result, sizeof(tf_result));
-            reg_write_return.dword = tf_result[0];
+            copy_result = copy_from_user(&uw_arg, (void *) arg, sizeof(uw_arg));
+            result = uniwill_wmi_ec_evaluate(uw_arg[0], uw_arg[1], uw_arg[2], uw_arg[3], 0, uw_result);
+            copy_result = copy_to_user((void *) arg, &uw_result, sizeof(uw_result));
+            reg_write_return.dword = uw_result[0];
             /*pr_info("data_high %0#2x\n", reg_write_return.bytes.data_high);
             pr_info("data_low %0#2x\n", reg_write_return.bytes.data_low);
             pr_info("addr_high %0#2x\n", reg_write_return.bytes.addr_high);
