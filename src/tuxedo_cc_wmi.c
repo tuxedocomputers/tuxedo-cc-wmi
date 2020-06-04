@@ -211,6 +211,7 @@ static long fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
         case R_MOD_VERSION:
             copy_result = copy_to_user((char *) arg, module_version, strlen(module_version) + 1);
             break;
+        // Hardware id checks, 1 = positive, 0 = negative
         case R_HWCHECK_CL:
             copy_result = copy_to_user((void *) arg, (void *) &id_check_clevo, sizeof(id_check_clevo));
             break;
@@ -243,14 +244,17 @@ static int __init tuxedo_cc_wmi_init(void)
 {
     int err;
 
-    // Only initialize if applicable hardware is found
+    // Hardware identification
     // This is not hotpluggable so can be done in module init
-    id_check_clevo = clevo_identify();
-    id_check_uniwill = uniwill_identify();
+    id_check_clevo = clevo_identify() == 0 ? 1 : 0;
+    id_check_uniwill = uniwill_identify() == 0 ? 1 : 0;
 
-    if (id_check_clevo != 0 || id_check_uniwill != 0) {
+#ifdef DEBUG
+    if (id_check_clevo == 0 && id_check_uniwill == 0) {
         pr_debug("No matching hardware found\n");
     }
+#endif
+
     err = alloc_chrdev_region(&tuxedo_cc_wmi_device_handle, 0, 1, "tuxedo_cc_wmi_cdev");
     if (err != 0) {
         pr_err("Failed to allocate chrdev region\n");
