@@ -23,6 +23,10 @@
 #define UNIWILL_WMI_MGMT_GUID_BB            "ABBC0F6E-8EA1-11D1-00A0-C90629100000"
 #define UNIWILL_WMI_MGMT_GUID_BC            "ABBC0F6F-8EA1-11D1-00A0-C90629100000"
 
+#define UNIWILL_WMI_EVENT_GUID_0            "ABBC0F70-8EA1-11D1-00A0-C90629100000"
+#define UNIWILL_WMI_EVENT_GUID_1            "ABBC0F71-8EA1-11D1-00A0-C90629100000"
+#define UNIWILL_WMI_EVENT_GUID_2            "ABBC0F72-8EA1-11D1-00A0-C90629100000"
+
 union uw_ec_read_return {
     u32 dword;
     struct {
@@ -103,4 +107,26 @@ static u32 uniwill_wmi_ec_write(u8 addr_low, u8 addr_high, u8 data_low, u8 data_
     u32 ret = uniwill_wmi_ec_evaluate(addr_low, addr_high, data_low, data_high, 0, uw_data);
     output->dword = uw_data[0];
     return ret;
+}
+
+static u32 uniwill_identify()
+{
+    int status;
+
+    // Look for for GUIDs used on uniwill devices
+    status =
+        wmi_has_guid(UNIWILL_WMI_EVENT_GUID_0) &&
+        wmi_has_guid(UNIWILL_WMI_EVENT_GUID_1) &&
+        wmi_has_guid(UNIWILL_WMI_EVENT_GUID_2) &&
+        wmi_has_guid(UNIWILL_WMI_MGMT_GUID_BA) &&
+        wmi_has_guid(UNIWILL_WMI_MGMT_GUID_BB) &&
+        wmi_has_guid(UNIWILL_WMI_MGMT_GUID_BC);
+
+    if (!status)
+    {
+        pr_debug("probe: At least one Uniwill GUID missing\n");
+        return -ENODEV;
+    }
+
+    return 0;
 }
