@@ -138,6 +138,11 @@ static long uniwill_ioctl_interface(struct file *file, unsigned int cmd, unsigne
             result = reg_read_return.bytes.data_low;
             copy_result = copy_to_user((void *) arg, &result, sizeof(result));
             break;
+        case R_UW_FAN_TEMP:
+            uniwill_wmi_ec_read(0x3e, 0x04, &reg_read_return);
+            result = reg_read_return.bytes.data_low;
+            copy_result = copy_to_user((void *) arg, &result, sizeof(result));
+            break;
         case R_UW_MODE:
             uniwill_wmi_ec_read(0x51, 0x07, &reg_read_return);
             result = reg_read_return.bytes.data_low;
