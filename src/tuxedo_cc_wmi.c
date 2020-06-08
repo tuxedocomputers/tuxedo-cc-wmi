@@ -172,7 +172,7 @@ static long uniwill_ioctl_interface(struct file *file, unsigned int cmd, unsigne
             uniwill_wmi_ec_read(0x51, 0x07, &reg_read_return);
             if (reg_read_return.bytes.data_low != 0x40) {
                 // If not "full fan mode" (ie. 0x40) switch to it (required for fancontrol)
-                uniwill_wmi_ec_write(0x41, 0x07, 0x40, reg_read_return.bytes.data_high, &reg_write_return);
+                uniwill_wmi_ec_write(0x51, 0x07, 0x40, reg_read_return.bytes.data_high, &reg_write_return);
             }
             // Set speed
             uniwill_wmi_ec_read(0x04, 0x18, &reg_read_return);
