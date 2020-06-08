@@ -186,7 +186,7 @@ static long uniwill_ioctl_interface(struct file *file, unsigned int cmd, unsigne
         case W_UW_MODE_ENABLE:
             copy_result = copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
             uniwill_wmi_ec_read(0x41, 0x07, &reg_read_return);
-            uniwill_wmi_ec_write(0x41, 0x07, argument & 0xff, reg_read_return.bytes.data_high, &reg_write_return);
+            uniwill_wmi_ec_write(0x41, 0x07, argument & 0x01, reg_read_return.bytes.data_high, &reg_write_return);
             break;
 #ifdef DEBUG
         case W_TF_BC:
