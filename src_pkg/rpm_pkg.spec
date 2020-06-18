@@ -90,6 +90,8 @@ exit 0
 
 
 %changelog
+* Thu Jun 18 2020 C Sandberg <tux@tuxedocomputers.com> 0.1.4-1
+- Added device support
 * Wed Apr 8 2020 C Sandberg <tux@tuxedocomputers.com> 0.1.3-1
 - Add package dependencies on old named package
 * Mon Mar 31 2020 C Sandberg <tux@tuxedocomputers.com> 0.1.2-0
