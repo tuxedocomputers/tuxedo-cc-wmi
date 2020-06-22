@@ -66,7 +66,34 @@ for POSTINST in /usr/lib/dkms/common.postinst /usr/share/%{module}/postinst; do
     if [ -f $POSTINST ]; then
         $POSTINST %{module} %{version} /usr/share/%{module}
         RET=$?
-        modprobe %{module} > /dev/null 2>&1 || true
+
+        # Attempt to (re-)load module immediately, fail silently if not possible at this stage
+
+        # Also stop tccd service if running before
+        echo "Check tccd running status"
+        if systemctl is-active --quiet tccd.service; then
+            TCCD_RUNNING=true
+        else
+            TCCD_RUNNING=false
+        fi
+
+        if $TCCD_RUNNING; then
+            echo "Stop tccd temporarily"
+            systemctl stop tccd 2>&1 || true
+        fi
+
+        echo "(Re)load tuxedo-cc-wmi module if possible"
+        rmmod %{module} > /dev/null 2>&1 || true
+        if modprobe %{module} > /dev/null 2>&1; then
+            echo "(Re)load complete"
+        fi
+
+        # Restart tccd after reload if it was running
+        if $TCCD_RUNNING; then
+            echo "Start tccd again"
+            systemctl start tccd 2>&1 || true
+        fi
+
         exit $RET
     fi
     echo "WARNING: $POSTINST does not exist."
