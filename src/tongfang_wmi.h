@@ -93,21 +93,23 @@ static u32 uniwill_wmi_ec_evaluate(u8 addr_low, u8 addr_high, u8 data_low, u8 da
     return e_result;
 }
 
-static u32 uniwill_wmi_ec_read(u8 addr_low, u8 addr_high, union uw_ec_read_return *output)
+u32 uniwill_wmi_ec_read(u8 addr_low, u8 addr_high, union uw_ec_read_return *output)
 {
     u32 uw_data[10];
     u32 ret = uniwill_wmi_ec_evaluate(addr_low, addr_high, 0x00, 0x00, 1, uw_data);
     output->dword = uw_data[0];
     return ret;
 }
+EXPORT_SYMBOL(uniwill_wmi_ec_read);
 
-static u32 uniwill_wmi_ec_write(u8 addr_low, u8 addr_high, u8 data_low, u8 data_high, union uw_ec_write_return *output)
+u32 uniwill_wmi_ec_write(u8 addr_low, u8 addr_high, u8 data_low, u8 data_high, union uw_ec_write_return *output)
 {
     u32 uw_data[10];
     u32 ret = uniwill_wmi_ec_evaluate(addr_low, addr_high, data_low, data_high, 0, uw_data);
     output->dword = uw_data[0];
     return ret;
 }
+EXPORT_SYMBOL(uniwill_wmi_ec_write);
 
 static u32 uniwill_identify(void)
 {
