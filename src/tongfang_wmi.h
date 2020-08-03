@@ -18,6 +18,7 @@
  */
 #include <linux/acpi.h>
 #include <linux/wmi.h>
+#include <linux/mutex.h>
 
 #define UNIWILL_WMI_MGMT_GUID_BA            "ABBC0F6D-8EA1-11D1-00A0-C90629100000"
 #define UNIWILL_WMI_MGMT_GUID_BB            "ABBC0F6E-8EA1-11D1-00A0-C90629100000"
@@ -45,6 +46,8 @@ union uw_ec_write_return {
     } bytes;
 };
 
+DEFINE_MUTEX(uniwill_wmi_ec_lock);
+
 static u32 uniwill_wmi_ec_evaluate(u8 addr_low, u8 addr_high, u8 data_low, u8 data_high, u8 read_flag, u32 *return_buffer)
 {
     acpi_status status;
@@ -60,6 +63,8 @@ static u32 uniwill_wmi_ec_evaluate(u8 addr_low, u8 addr_high, u8 data_low, u8 da
     u32 wmi_method_id = 0x04;
     struct acpi_buffer wmi_in = { (acpi_size) sizeof(wmi_arg), wmi_arg};
     struct acpi_buffer wmi_out = { ACPI_ALLOCATE_BUFFER, NULL };
+
+    mutex_lock(&uniwill_wmi_ec_lock);
 
     // Zero input buffer
     memset(wmi_arg, 0x00, 10 * sizeof(u32));
@@ -89,6 +94,8 @@ static u32 uniwill_wmi_ec_evaluate(u8 addr_low, u8 addr_high, u8 data_low, u8 da
 
     kfree(out_acpi);
     kfree(wmi_arg);
+
+    mutex_unlock(&uniwill_wmi_ec_lock);
 
     return e_result;
 }
