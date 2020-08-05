@@ -100,7 +100,12 @@ static long clevo_ioctl_interface(struct file *file, unsigned int cmd, unsigned 
             break;
         case W_WEBCAM_SW:
             copy_result = copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
-            clevo_wmi_evaluate(CLEVO_WMI_CMD_SET_WEBCAM_SW, argument);
+            result = clevo_wmi_evaluate(CLEVO_WMI_CMD_GET_WEBCAM_SW, 0);
+            // Only set status if it isn't already the right value
+            // (workaround for old and/or buggy WMI interfaces that toggle on write)
+            if ((argument & 0x01) != (result & 0x01)) {
+                clevo_wmi_evaluate(CLEVO_WMI_CMD_SET_WEBCAM_SW, argument);
+            }
             break;
         case W_FLIGHTMODE_SW:
             copy_result = copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
