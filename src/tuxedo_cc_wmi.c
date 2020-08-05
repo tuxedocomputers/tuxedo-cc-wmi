@@ -25,6 +25,7 @@
 #include <linux/fs.h>
 #include <linux/cdev.h>
 #include <linux/uaccess.h>
+#include <linux/delay.h>
 #include "clevo_wmi.h"
 #include "tongfang_wmi.h"
 #include "tuxedo_cc_wmi_ioctl.h"
@@ -93,6 +94,12 @@ static long clevo_ioctl_interface(struct file *file, unsigned int cmd, unsigned 
         case W_FANSPEED:
             copy_result = copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
             clevo_wmi_evaluate(CLEVO_WMI_CMD_SET_FANSPEED_VALUE, argument);
+            // Note: Delay needed to let hardware catch up with the written value.
+            // No known ready flag. If the value is read too soon, the old value
+            // will still be read out.
+            // (Theoretically needed for other methods as well.)
+            // Can it be lower? 50ms is too low
+            msleep(100);
             break;
         case W_FANAUTO:
             copy_result = copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
