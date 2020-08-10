@@ -117,6 +117,9 @@ exit 0
 
 
 %changelog
+* Mon Aug 10 2020 C Sandberg <tux@tuxedocomputers.com> 0.1.5-1
+- Fixed fan speed write timing for most cl devices
+- Added webcam set interface support for older cl devices
 * Thu Jun 18 2020 C Sandberg <tux@tuxedocomputers.com> 0.1.4-1
 - Added device support
 * Wed Apr 8 2020 C Sandberg <tux@tuxedocomputers.com> 0.1.3-1

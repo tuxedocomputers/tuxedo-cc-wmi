@@ -25,13 +25,14 @@
 #include <linux/fs.h>
 #include <linux/cdev.h>
 #include <linux/uaccess.h>
+#include <linux/delay.h>
 #include "clevo_wmi.h"
 #include "tongfang_wmi.h"
 #include "tuxedo_cc_wmi_ioctl.h"
 
 MODULE_DESCRIPTION("WMI method control for TUXEDO laptops");
 MODULE_AUTHOR("TUXEDO Computers GmbH <tux@tuxedocomputers.com>");
-MODULE_VERSION("0.1.4");
+MODULE_VERSION("0.1.5");
 MODULE_LICENSE("GPL");
 MODULE_ALIAS("wmi:" CLEVO_WMI_METHOD_GUID);
 MODULE_ALIAS("wmi:" UNIWILL_WMI_MGMT_GUID_BA);
@@ -93,6 +94,12 @@ static long clevo_ioctl_interface(struct file *file, unsigned int cmd, unsigned 
         case W_FANSPEED:
             copy_result = copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
             clevo_wmi_evaluate(CLEVO_WMI_CMD_SET_FANSPEED_VALUE, argument);
+            // Note: Delay needed to let hardware catch up with the written value.
+            // No known ready flag. If the value is read too soon, the old value
+            // will still be read out.
+            // (Theoretically needed for other methods as well.)
+            // Can it be lower? 50ms is too low
+            msleep(100);
             break;
         case W_FANAUTO:
             copy_result = copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
@@ -100,7 +107,12 @@ static long clevo_ioctl_interface(struct file *file, unsigned int cmd, unsigned 
             break;
         case W_WEBCAM_SW:
             copy_result = copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
-            clevo_wmi_evaluate(CLEVO_WMI_CMD_SET_WEBCAM_SW, argument);
+            result = clevo_wmi_evaluate(CLEVO_WMI_CMD_GET_WEBCAM_SW, 0);
+            // Only set status if it isn't already the right value
+            // (workaround for old and/or buggy WMI interfaces that toggle on write)
+            if ((argument & 0x01) != (result & 0x01)) {
+                clevo_wmi_evaluate(CLEVO_WMI_CMD_SET_WEBCAM_SW, argument);
+            }
             break;
         case W_FLIGHTMODE_SW:
             copy_result = copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
