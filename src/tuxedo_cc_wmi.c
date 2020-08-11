@@ -208,9 +208,12 @@ static long uniwill_ioctl_interface(struct file *file, unsigned int cmd, unsigne
             uniwill_wmi_ec_write(0x51, 0x07, argument & 0xff, reg_read_return.bytes.data_high, &reg_write_return);
             break;
         case W_UW_MODE_ENABLE:
+            // Note: Is for the moment set and cleared on init/exit of module (uniwill mode)
+            /*
             copy_result = copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
             uniwill_wmi_ec_read(0x41, 0x07, &reg_read_return);
             uniwill_wmi_ec_write(0x41, 0x07, argument & 0x01, reg_read_return.bytes.data_high, &reg_write_return);
+            */
             break;
 #ifdef DEBUG
         case W_TF_BC:
@@ -278,6 +281,10 @@ static int __init tuxedo_cc_wmi_init(void)
     id_check_clevo = clevo_identify() == 0 ? 1 : 0;
     id_check_uniwill = uniwill_identify() == 0 ? 1 : 0;
 
+    if (id_check_uniwill == 1) {
+        uniwill_init();
+    }
+
 #ifdef DEBUG
     if (id_check_clevo == 0 && id_check_uniwill == 0) {
         pr_debug("No matching hardware found\n");
@@ -304,6 +311,10 @@ static int __init tuxedo_cc_wmi_init(void)
 
 static void __exit tuxedo_cc_wmi_exit(void)
 {
+    if (id_check_uniwill == 1) {
+        uniwill_exit();
+    }
+
     device_destroy(tuxedo_cc_wmi_device_class, tuxedo_cc_wmi_device_handle);
     class_destroy(tuxedo_cc_wmi_device_class);
     cdev_del(&tuxedo_cc_wmi_cdev);

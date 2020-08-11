@@ -139,3 +139,23 @@ static u32 uniwill_identify(void)
 
     return 0;
 }
+
+static void uniwill_init(void)
+{
+    union uw_ec_read_return reg_read_return;
+    union uw_ec_write_return reg_write_return;
+
+    // Enable manual mode
+    uniwill_wmi_ec_read(0x41, 0x07, &reg_read_return);
+    uniwill_wmi_ec_write(0x41, 0x07, 0x01, reg_read_return.bytes.data_high, &reg_write_return);
+}
+
+static void uniwill_exit(void)
+{
+    union uw_ec_read_return reg_read_return;
+    union uw_ec_write_return reg_write_return;
+
+    // Disable manual mode
+    uniwill_wmi_ec_read(0x41, 0x07, &reg_read_return);
+    uniwill_wmi_ec_write(0x41, 0x07, 0x00, reg_read_return.bytes.data_high, &reg_write_return);
+}
