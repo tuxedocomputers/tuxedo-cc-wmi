@@ -182,11 +182,10 @@ static long uniwill_ioctl_interface(struct file *file, unsigned int cmd, unsigne
             uniwill_wmi_ec_read(0x51, 0x07, &reg_read_return);
             if (reg_read_return.bytes.data_low != 0x40) {
                 // If not "full fan mode" (ie. 0x40) switch to it (required for fancontrol)
-                uniwill_wmi_ec_write(0x51, 0x07, 0x40, reg_read_return.bytes.data_high, &reg_write_return);
+                uniwill_wmi_ec_write(0x51, 0x07, 0x40, 0x00, &reg_write_return);
             }
             // Set speed
-            uniwill_wmi_ec_read(0x04, 0x18, &reg_read_return);
-            uniwill_wmi_ec_write(0x04, 0x18, argument & 0xff, reg_read_return.bytes.data_high, &reg_write_return);
+            uniwill_wmi_ec_write(0x04, 0x18, argument & 0xff, 0x00, &reg_write_return);
             break;
         case W_UW_FANSPEED2:
             // Get fan speed argument
@@ -196,23 +195,20 @@ static long uniwill_ioctl_interface(struct file *file, unsigned int cmd, unsigne
             uniwill_wmi_ec_read(0x51, 0x07, &reg_read_return);
             if (reg_read_return.bytes.data_low != 0x40) {
                 // If not "full fan mode" (ie. 0x40) switch to it (required for fancontrol)
-                uniwill_wmi_ec_write(0x51, 0x07, 0x40, reg_read_return.bytes.data_high, &reg_write_return);
+                uniwill_wmi_ec_write(0x51, 0x07, 0x40, 0x00, &reg_write_return);
             }
             // Set speed
-            uniwill_wmi_ec_read(0x09, 0x18, &reg_read_return);
-            uniwill_wmi_ec_write(0x09, 0x18, argument & 0xff, reg_read_return.bytes.data_high, &reg_write_return);
+            uniwill_wmi_ec_write(0x09, 0x18, argument & 0xff, 0x00, &reg_write_return);
             break;
         case W_UW_MODE:
             copy_result = copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
-            uniwill_wmi_ec_read(0x51, 0x07, &reg_read_return);
-            uniwill_wmi_ec_write(0x51, 0x07, argument & 0xff, reg_read_return.bytes.data_high, &reg_write_return);
+            uniwill_wmi_ec_write(0x51, 0x07, argument & 0xff, 0x00, &reg_write_return);
             break;
         case W_UW_MODE_ENABLE:
             // Note: Is for the moment set and cleared on init/exit of module (uniwill mode)
             /*
             copy_result = copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
-            uniwill_wmi_ec_read(0x41, 0x07, &reg_read_return);
-            uniwill_wmi_ec_write(0x41, 0x07, argument & 0x01, reg_read_return.bytes.data_high, &reg_write_return);
+            uniwill_wmi_ec_write(0x41, 0x07, argument & 0x01, 0x00, &reg_write_return);
             */
             break;
 #ifdef DEBUG
