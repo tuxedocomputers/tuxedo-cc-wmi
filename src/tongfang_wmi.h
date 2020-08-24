@@ -59,9 +59,11 @@ union uw_ec_write_return {
     } bytes;
 };
 
+static bool uniwill_ec_direct = true;
+
 DEFINE_MUTEX(uniwill_ec_lock);
 
-static u32 uniwill_wmi_ec_evaluate(u8 addr_low, u8 addr_high, u8 data_low, u8 data_high, u8 read_flag, u32 *return_buffer)
+static u32 uw_wmi_ec_evaluate(u8 addr_low, u8 addr_high, u8 data_low, u8 data_high, u8 read_flag, u32 *return_buffer)
 {
     acpi_status status;
     union acpi_object *out_acpi;
@@ -116,32 +118,30 @@ static u32 uniwill_wmi_ec_evaluate(u8 addr_low, u8 addr_high, u8 data_low, u8 da
 /**
  * EC address read through WMI
  */
-u32 uniwill_wmi_ec_read(u8 addr_low, u8 addr_high, union uw_ec_read_return *output)
+static u32 uw_ec_read_addr_wmi(u8 addr_low, u8 addr_high, union uw_ec_read_return *output)
 {
     u32 uw_data[10];
-    u32 ret = uniwill_wmi_ec_evaluate(addr_low, addr_high, 0x00, 0x00, 1, uw_data);
+    u32 ret = uw_wmi_ec_evaluate(addr_low, addr_high, 0x00, 0x00, 1, uw_data);
     output->dword = uw_data[0];
     pr_debug("addr: 0x%02x%02x value: %0#4x (high: %0#4x) result: %d\n", addr_high, addr_low, output->bytes.data_low, output->bytes.data_high, ret);
     return ret;
 }
-EXPORT_SYMBOL(uniwill_wmi_ec_read);
 
 /**
  * EC address write through WMI
  */
-u32 uniwill_wmi_ec_write(u8 addr_low, u8 addr_high, u8 data_low, u8 data_high, union uw_ec_write_return *output)
+static u32 uw_ec_write_addr_wmi(u8 addr_low, u8 addr_high, u8 data_low, u8 data_high, union uw_ec_write_return *output)
 {
     u32 uw_data[10];
-    u32 ret = uniwill_wmi_ec_evaluate(addr_low, addr_high, data_low, data_high, 0, uw_data);
+    u32 ret = uw_wmi_ec_evaluate(addr_low, addr_high, data_low, data_high, 0, uw_data);
     output->dword = uw_data[0];
     return ret;
 }
-EXPORT_SYMBOL(uniwill_wmi_ec_write);
 
 /**
  * Direct EC address read
  */
-static u32 uniwill_ec_read_addr(u8 addr_low, u8 addr_high, union uw_ec_read_return *output)
+static u32 uw_ec_read_addr_direct(u8 addr_low, u8 addr_high, union uw_ec_read_return *output)
 {
     u32 result = 0;
     u8 tmp, count, flags;
@@ -180,6 +180,22 @@ static u32 uniwill_ec_read_addr(u8 addr_low, u8 addr_high, union uw_ec_read_retu
     return result;
 }
 
+u32 uw_ec_read_addr(u8 addr_low, u8 addr_high, union uw_ec_read_return *output)
+{
+    if (uniwill_ec_direct) {
+        return uw_ec_read_addr_direct(addr_low, addr_high, output);
+    } else {
+        return uw_ec_read_addr_wmi(addr_low, addr_high, output);
+    }
+}
+EXPORT_SYMBOL(uw_ec_read_addr);
+
+u32 uw_ec_write_addr(u8 addr_low, u8 addr_high, u8 data_low, u8 data_high, union uw_ec_write_return *output)
+{
+    return uw_ec_write_addr_wmi(addr_low, addr_high, data_low, data_high, output);
+}
+EXPORT_SYMBOL(uw_ec_write_addr);
+
 static u32 uniwill_identify(void)
 {
     int status;
@@ -208,8 +224,8 @@ static void uniwill_init(void)
     union uw_ec_write_return reg_write_return;
 
     // Enable manual mode
-    uniwill_wmi_ec_read(0x41, 0x07, &reg_read_return);
-    uniwill_wmi_ec_write(0x41, 0x07, 0x01, reg_read_return.bytes.data_high, &reg_write_return);
+    uw_ec_read_addr(0x41, 0x07, &reg_read_return);
+    uw_ec_write_addr(0x41, 0x07, 0x01, reg_read_return.bytes.data_high, &reg_write_return);
 }
 
 static void uniwill_exit(void)
@@ -218,6 +234,6 @@ static void uniwill_exit(void)
     union uw_ec_write_return reg_write_return;
 
     // Disable manual mode
-    uniwill_wmi_ec_read(0x41, 0x07, &reg_read_return);
-    uniwill_wmi_ec_write(0x41, 0x07, 0x00, reg_read_return.bytes.data_high, &reg_write_return);
+    uw_ec_read_addr(0x41, 0x07, &reg_read_return);
+    uw_ec_write_addr(0x41, 0x07, 0x00, reg_read_return.bytes.data_high, &reg_write_return);
 }
