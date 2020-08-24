@@ -19,6 +19,7 @@
 #include <linux/acpi.h>
 #include <linux/wmi.h>
 #include <linux/mutex.h>
+#include <linux/delay.h>
 
 #define UNIWILL_WMI_MGMT_GUID_BA            "ABBC0F6D-8EA1-11D1-00A0-C90629100000"
 #define UNIWILL_WMI_MGMT_GUID_BB            "ABBC0F6E-8EA1-11D1-00A0-C90629100000"
@@ -46,7 +47,7 @@ union uw_ec_write_return {
     } bytes;
 };
 
-DEFINE_MUTEX(uniwill_wmi_ec_lock);
+DEFINE_MUTEX(uniwill_ec_lock);
 
 static u32 uniwill_wmi_ec_evaluate(u8 addr_low, u8 addr_high, u8 data_low, u8 data_high, u8 read_flag, u32 *return_buffer)
 {
@@ -64,7 +65,7 @@ static u32 uniwill_wmi_ec_evaluate(u8 addr_low, u8 addr_high, u8 data_low, u8 da
     struct acpi_buffer wmi_in = { (acpi_size) sizeof(wmi_arg), wmi_arg};
     struct acpi_buffer wmi_out = { ACPI_ALLOCATE_BUFFER, NULL };
 
-    mutex_lock(&uniwill_wmi_ec_lock);
+    mutex_lock(&uniwill_ec_lock);
 
     // Zero input buffer
     memset(wmi_arg, 0x00, 10 * sizeof(u32));
@@ -95,20 +96,27 @@ static u32 uniwill_wmi_ec_evaluate(u8 addr_low, u8 addr_high, u8 data_low, u8 da
     kfree(out_acpi);
     kfree(wmi_arg);
 
-    mutex_unlock(&uniwill_wmi_ec_lock);
+    mutex_unlock(&uniwill_ec_lock);
 
     return e_result;
 }
 
+/**
+ * EC address read through WMI
+ */
 u32 uniwill_wmi_ec_read(u8 addr_low, u8 addr_high, union uw_ec_read_return *output)
 {
     u32 uw_data[10];
     u32 ret = uniwill_wmi_ec_evaluate(addr_low, addr_high, 0x00, 0x00, 1, uw_data);
     output->dword = uw_data[0];
+    pr_debug("addr: 0x%02x%02x value: %0#4x (high: %0#4x) result: %d\n", addr_high, addr_low, output->bytes.data_low, output->bytes.data_high, ret);
     return ret;
 }
 EXPORT_SYMBOL(uniwill_wmi_ec_read);
 
+/**
+ * EC address write through WMI
+ */
 u32 uniwill_wmi_ec_write(u8 addr_low, u8 addr_high, u8 data_low, u8 data_high, union uw_ec_write_return *output)
 {
     u32 uw_data[10];
@@ -117,6 +125,51 @@ u32 uniwill_wmi_ec_write(u8 addr_low, u8 addr_high, u8 data_low, u8 data_high, u
     return ret;
 }
 EXPORT_SYMBOL(uniwill_wmi_ec_write);
+
+/**
+ * Direct EC address read
+ */
+static u32 uniwill_ec_read_addr(u8 addr_low, u8 addr_high, union uw_ec_read_return *output)
+{
+    u32 result = 0;
+    u8 tmp, count, flags;
+
+    mutex_lock(&uniwill_ec_lock);
+
+    // Set LDAT
+    ec_write(0x8a, addr_low);
+
+    // Set HDAT
+    ec_write(0x8b, addr_high);
+
+    // Zero DRDY and set RFLG
+    flags = (0 << 7) | (1 << 0);
+    ec_write(0x8c, flags);
+
+    count = 0x50;
+    do {
+        msleep(1);
+        ec_read(0x8c, &tmp);
+        count -= 1;
+    } while ( ((tmp & (1 << 7)) == 0) && count != 0 );
+
+    if (count != 0) {
+        // Read CMDL
+        ec_read(0x8d, &tmp);
+        output->bytes.data_low = tmp;
+        // Read CMDH
+        ec_read(0x8e, &tmp);
+        output->bytes.data_high = tmp;
+    } else {
+        result = -EIO;
+    }
+
+    mutex_unlock(&uniwill_ec_lock);
+
+    pr_debug("addr: 0x%02x%02x value: %0#4x result: %d\n", addr_high, addr_low, output->bytes.data_low, result);
+
+    return result;
+}
 
 static u32 uniwill_identify(void)
 {
