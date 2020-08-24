@@ -29,6 +29,18 @@
 #define UNIWILL_WMI_EVENT_GUID_1            "ABBC0F71-8EA1-11D1-00A0-C90629100000"
 #define UNIWILL_WMI_EVENT_GUID_2            "ABBC0F72-8EA1-11D1-00A0-C90629100000"
 
+#define UNIWILL_EC_REG_LDAT     0x8a
+#define UNIWILL_EC_REG_HDAT     0x8b
+#define UNIWILL_EC_REG_FLAGS    0x8c
+#define UNIWILL_EC_REG_CMDL     0x8d
+#define UNIWILL_EC_REG_CMDH     0x8e
+
+#define UNIWILL_EC_BIT_RFLG     0
+#define UNIWILL_EC_BIT_WFLG     1
+#define UNIWILL_EC_BIT_BFLG     2
+#define UNIWILL_EC_BIT_CFLG     3
+#define UNIWILL_EC_BIT_DRDY     7
+
 union uw_ec_read_return {
     u32 dword;
     struct {
@@ -136,32 +148,29 @@ static u32 uniwill_ec_read_addr(u8 addr_low, u8 addr_high, union uw_ec_read_retu
 
     mutex_lock(&uniwill_ec_lock);
 
-    // Set LDAT
-    ec_write(0x8a, addr_low);
+    ec_write(UNIWILL_EC_REG_LDAT, addr_low);
+    ec_write(UNIWILL_EC_REG_HDAT, addr_high);
 
-    // Set HDAT
-    ec_write(0x8b, addr_high);
+    flags = (0 << UNIWILL_EC_BIT_DRDY) | (1 << UNIWILL_EC_BIT_RFLG);
+    ec_write(UNIWILL_EC_REG_FLAGS, flags);
 
-    // Zero DRDY and set RFLG
-    flags = (0 << 7) | (1 << 0);
-    ec_write(0x8c, flags);
-
+    // Wait for ready flag
     count = 0x50;
     do {
         msleep(1);
-        ec_read(0x8c, &tmp);
+        ec_read(UNIWILL_EC_REG_FLAGS, &tmp);
         count -= 1;
-    } while ( ((tmp & (1 << 7)) == 0) && count != 0 );
+    } while ( ((tmp & (1 << UNIWILL_EC_BIT_DRDY)) == 0) && count != 0 );
 
     if (count != 0) {
-        // Read CMDL
-        ec_read(0x8d, &tmp);
+        output->dword = 0;
+        ec_read(UNIWILL_EC_REG_CMDL, &tmp);
         output->bytes.data_low = tmp;
-        // Read CMDH
-        ec_read(0x8e, &tmp);
+        ec_read(UNIWILL_EC_REG_CMDH, &tmp);
         output->bytes.data_high = tmp;
     } else {
         result = -EIO;
+        output->dword = 0xfefefefe;
     }
 
     mutex_unlock(&uniwill_ec_lock);
