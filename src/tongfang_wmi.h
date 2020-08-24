@@ -41,6 +41,8 @@
 #define UNIWILL_EC_BIT_CFLG     3
 #define UNIWILL_EC_BIT_DRDY     7
 
+#define UW_EC_WAIT_CYCLES       0x50
+
 union uw_ec_read_return {
     u32 dword;
     struct {
@@ -143,7 +145,7 @@ static u32 uw_ec_write_addr_wmi(u8 addr_low, u8 addr_high, u8 data_low, u8 data_
  */
 static u32 uw_ec_read_addr_direct(u8 addr_low, u8 addr_high, union uw_ec_read_return *output)
 {
-    u32 result = 0;
+    u32 result;
     u8 tmp, count, flags;
 
     mutex_lock(&uniwill_ec_lock);
@@ -155,12 +157,13 @@ static u32 uw_ec_read_addr_direct(u8 addr_low, u8 addr_high, union uw_ec_read_re
     ec_write(UNIWILL_EC_REG_FLAGS, flags);
 
     // Wait for ready flag
-    count = 0x50;
-    do {
+    count = UW_EC_WAIT_CYCLES;
+    ec_read(UNIWILL_EC_REG_FLAGS, &tmp);
+    while (((tmp & (1 << UNIWILL_EC_BIT_DRDY)) == 0) && count != 0) {
         msleep(1);
         ec_read(UNIWILL_EC_REG_FLAGS, &tmp);
         count -= 1;
-    } while ( ((tmp & (1 << UNIWILL_EC_BIT_DRDY)) == 0) && count != 0 );
+    }
 
     if (count != 0) {
         output->dword = 0;
@@ -168,10 +171,13 @@ static u32 uw_ec_read_addr_direct(u8 addr_low, u8 addr_high, union uw_ec_read_re
         output->bytes.data_low = tmp;
         ec_read(UNIWILL_EC_REG_CMDH, &tmp);
         output->bytes.data_high = tmp;
+        result = 0;
     } else {
-        result = -EIO;
         output->dword = 0xfefefefe;
+        result = -EIO;
     }
+
+    ec_write(UNIWILL_EC_REG_FLAGS, 0x00);
 
     mutex_unlock(&uniwill_ec_lock);
 
@@ -179,6 +185,51 @@ static u32 uw_ec_read_addr_direct(u8 addr_low, u8 addr_high, union uw_ec_read_re
 
     return result;
 }
+
+static u32 uw_ec_write_addr_direct(u8 addr_low, u8 addr_high, u8 data_low, u8 data_high, union uw_ec_write_return *output)
+{
+    u32 result = 0;
+    u8 tmp, count, flags;
+
+    mutex_lock(&uniwill_ec_lock);
+
+    ec_write(UNIWILL_EC_REG_LDAT, addr_low);
+    ec_write(UNIWILL_EC_REG_HDAT, addr_high);
+    ec_write(UNIWILL_EC_REG_CMDL, data_low);
+    ec_write(UNIWILL_EC_REG_CMDH, data_high);
+
+    flags = (0 << UNIWILL_EC_BIT_DRDY) | (1 << UNIWILL_EC_BIT_WFLG);
+    ec_write(UNIWILL_EC_REG_FLAGS, flags);
+
+    // Wait for ready flag
+    count = UW_EC_WAIT_CYCLES;
+    ec_read(UNIWILL_EC_REG_FLAGS, &tmp);
+    while (((tmp & (1 << UNIWILL_EC_BIT_DRDY)) == 0) && count != 0) {
+        msleep(1);
+        ec_read(UNIWILL_EC_REG_FLAGS, &tmp);
+        count -= 1;
+    }
+
+    // Replicate wmi output depending on success
+    if (count != 0) {
+        output->bytes.addr_low = addr_low;
+        output->bytes.addr_high = addr_high;
+        output->bytes.data_low = data_low;
+        output->bytes.data_high = data_high;
+        result = 0;
+    } else {
+        output->dword = 0xfefefefe;
+        result = -EIO;
+    }
+
+    ec_write(UNIWILL_EC_REG_FLAGS, 0x00);
+
+    mutex_unlock(&uniwill_ec_lock);
+
+    return result;
+}
+
+
 
 u32 uw_ec_read_addr(u8 addr_low, u8 addr_high, union uw_ec_read_return *output)
 {
@@ -192,7 +243,11 @@ EXPORT_SYMBOL(uw_ec_read_addr);
 
 u32 uw_ec_write_addr(u8 addr_low, u8 addr_high, u8 data_low, u8 data_high, union uw_ec_write_return *output)
 {
-    return uw_ec_write_addr_wmi(addr_low, addr_high, data_low, data_high, output);
+    if (uniwill_ec_direct) {
+        return uw_ec_write_addr_direct(addr_low, addr_high, data_low, data_high, output);
+    } else {
+        return uw_ec_write_addr_wmi(addr_low, addr_high, data_low, data_high, output);
+    }
 }
 EXPORT_SYMBOL(uw_ec_write_addr);
 
