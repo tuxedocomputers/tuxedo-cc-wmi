@@ -229,8 +229,6 @@ static u32 uw_ec_write_addr_direct(u8 addr_low, u8 addr_high, u8 data_low, u8 da
     return result;
 }
 
-
-
 u32 uw_ec_read_addr(u8 addr_low, u8 addr_high, union uw_ec_read_return *output)
 {
     if (uniwill_ec_direct) {
@@ -275,20 +273,16 @@ static u32 uniwill_identify(void)
 
 static void uniwill_init(void)
 {
-    union uw_ec_read_return reg_read_return;
     union uw_ec_write_return reg_write_return;
 
     // Enable manual mode
-    uw_ec_read_addr(0x41, 0x07, &reg_read_return);
-    uw_ec_write_addr(0x41, 0x07, 0x01, reg_read_return.bytes.data_high, &reg_write_return);
+    uw_ec_write_addr(0x41, 0x07, 0x01, 0x00, &reg_write_return);
 }
 
 static void uniwill_exit(void)
 {
-    union uw_ec_read_return reg_read_return;
     union uw_ec_write_return reg_write_return;
 
     // Disable manual mode
-    uw_ec_read_addr(0x41, 0x07, &reg_read_return);
-    uw_ec_write_addr(0x41, 0x07, 0x00, reg_read_return.bytes.data_high, &reg_write_return);
+    uw_ec_write_addr(0x41, 0x07, 0x00, 0x00, &reg_write_return);
 }
