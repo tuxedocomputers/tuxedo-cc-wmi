@@ -150,8 +150,18 @@ static long uniwill_ioctl_interface(struct file *file, unsigned int cmd, unsigne
             result = reg_read_return.bytes.data_low;
             copy_result = copy_to_user((void *) arg, &result, sizeof(result));
             break;
+        case R_UW_FANSPEED2:
+            uniwill_wmi_ec_read(0x09, 0x18, &reg_read_return);
+            result = reg_read_return.bytes.data_low;
+            copy_result = copy_to_user((void *) arg, &result, sizeof(result));
+            break;
         case R_UW_FAN_TEMP:
             uniwill_wmi_ec_read(0x3e, 0x04, &reg_read_return);
+            result = reg_read_return.bytes.data_low;
+            copy_result = copy_to_user((void *) arg, &result, sizeof(result));
+            break;
+        case R_UW_FAN_TEMP2:
+            uniwill_wmi_ec_read(0x4f, 0x04, &reg_read_return);
             result = reg_read_return.bytes.data_low;
             copy_result = copy_to_user((void *) arg, &result, sizeof(result));
             break;
@@ -189,6 +199,20 @@ static long uniwill_ioctl_interface(struct file *file, unsigned int cmd, unsigne
             // Set speed
             uniwill_wmi_ec_read(0x04, 0x18, &reg_read_return);
             uniwill_wmi_ec_write(0x04, 0x18, argument & 0xff, reg_read_return.bytes.data_high, &reg_write_return);
+            break;
+        case W_UW_FANSPEED2:
+            // Get fan speed argument
+            copy_result = copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
+
+            // Check current mode
+            uniwill_wmi_ec_read(0x51, 0x07, &reg_read_return);
+            if (reg_read_return.bytes.data_low != 0x40) {
+                // If not "full fan mode" (ie. 0x40) switch to it (required for fancontrol)
+                uniwill_wmi_ec_write(0x51, 0x07, 0x40, reg_read_return.bytes.data_high, &reg_write_return);
+            }
+            // Set speed
+            uniwill_wmi_ec_read(0x09, 0x18, &reg_read_return);
+            uniwill_wmi_ec_write(0x09, 0x18, argument & 0xff, reg_read_return.bytes.data_high, &reg_write_return);
             break;
         case W_UW_MODE:
             copy_result = copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
