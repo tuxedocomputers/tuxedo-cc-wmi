@@ -117,6 +117,8 @@ exit 0
 
 
 %changelog
+* Fri Aug 28 2020 C Sandberg <tux@tuxedocomputers.com> 0.1.6-1
+- Fixed webcam status issue on some cl devices
 * Mon Aug 10 2020 C Sandberg <tux@tuxedocomputers.com> 0.1.5-1
 - Fixed fan speed write timing for most cl devices
 - Added webcam set interface support for older cl devices

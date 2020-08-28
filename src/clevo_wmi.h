@@ -98,5 +98,8 @@ static u32 clevo_identify(void) {
         return -ENODEV;
     }
 
+    // Init webcam status bit to 'on' to make sure it is read-out correctly
+    clevo_wmi_evaluate(CLEVO_WMI_CMD_SET_WEBCAM_SW, 0x01);
+
     return 0;
 }
