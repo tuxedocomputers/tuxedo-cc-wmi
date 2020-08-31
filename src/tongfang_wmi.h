@@ -277,6 +277,9 @@ static void uniwill_init(void)
 
     // Enable manual mode
     uw_ec_write_addr(0x41, 0x07, 0x01, 0x00, &reg_write_return);
+
+    // Zero second fan temp for detection
+    uw_ec_write_addr(0x4f, 0x04, 0x00, 0x00, &reg_write_return);
 }
 
 static void uniwill_exit(void)
