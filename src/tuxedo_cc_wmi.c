@@ -146,22 +146,32 @@ static long uniwill_ioctl_interface(struct file *file, unsigned int cmd, unsigne
 
     switch (cmd) {
         case R_UW_FANSPEED:
-            uniwill_wmi_ec_read(0x04, 0x18, &reg_read_return);
+            uw_ec_read_addr(0x04, 0x18, &reg_read_return);
+            result = reg_read_return.bytes.data_low;
+            copy_result = copy_to_user((void *) arg, &result, sizeof(result));
+            break;
+        case R_UW_FANSPEED2:
+            uw_ec_read_addr(0x09, 0x18, &reg_read_return);
             result = reg_read_return.bytes.data_low;
             copy_result = copy_to_user((void *) arg, &result, sizeof(result));
             break;
         case R_UW_FAN_TEMP:
-            uniwill_wmi_ec_read(0x3e, 0x04, &reg_read_return);
+            uw_ec_read_addr(0x3e, 0x04, &reg_read_return);
+            result = reg_read_return.bytes.data_low;
+            copy_result = copy_to_user((void *) arg, &result, sizeof(result));
+            break;
+        case R_UW_FAN_TEMP2:
+            uw_ec_read_addr(0x4f, 0x04, &reg_read_return);
             result = reg_read_return.bytes.data_low;
             copy_result = copy_to_user((void *) arg, &result, sizeof(result));
             break;
         case R_UW_MODE:
-            uniwill_wmi_ec_read(0x51, 0x07, &reg_read_return);
+            uw_ec_read_addr(0x51, 0x07, &reg_read_return);
             result = reg_read_return.bytes.data_low;
             copy_result = copy_to_user((void *) arg, &result, sizeof(result));
             break;
         case R_UW_MODE_ENABLE:
-            uniwill_wmi_ec_read(0x41, 0x07, &reg_read_return);
+            uw_ec_read_addr(0x41, 0x07, &reg_read_return);
             result = reg_read_return.bytes.data_low;
             copy_result = copy_to_user((void *) arg, &result, sizeof(result));
             break;
@@ -169,8 +179,13 @@ static long uniwill_ioctl_interface(struct file *file, unsigned int cmd, unsigne
         case R_TF_BC:
             copy_result = copy_from_user(&uw_arg, (void *) arg, sizeof(uw_arg));
             pr_info("R_TF_BC args [%0#2x, %0#2x, %0#2x, %0#2x]\n", uw_arg[0], uw_arg[1], uw_arg[2], uw_arg[3]);
-            result = uniwill_wmi_ec_evaluate(uw_arg[0], uw_arg[1], uw_arg[2], uw_arg[3], 1, uw_result);
-            copy_result = copy_to_user((void *) arg, &uw_result, sizeof(uw_result));
+            if (uniwill_ec_direct) {
+                result = uw_ec_read_addr_direct(uw_arg[0], uw_arg[1], &reg_read_return);
+                copy_result = copy_to_user((void *) arg, &reg_read_return.dword, sizeof(reg_read_return.dword));
+            } else {
+                result = uw_wmi_ec_evaluate(uw_arg[0], uw_arg[1], uw_arg[2], uw_arg[3], 1, uw_result);
+                copy_result = copy_to_user((void *) arg, &uw_result, sizeof(uw_result));
+            }
             break;
 #endif
     }
@@ -181,31 +196,49 @@ static long uniwill_ioctl_interface(struct file *file, unsigned int cmd, unsigne
             copy_result = copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
 
             // Check current mode
-            uniwill_wmi_ec_read(0x51, 0x07, &reg_read_return);
+            uw_ec_read_addr(0x51, 0x07, &reg_read_return);
             if (reg_read_return.bytes.data_low != 0x40) {
                 // If not "full fan mode" (ie. 0x40) switch to it (required for fancontrol)
-                uniwill_wmi_ec_write(0x51, 0x07, 0x40, reg_read_return.bytes.data_high, &reg_write_return);
+                uw_ec_write_addr(0x51, 0x07, 0x40, 0x00, &reg_write_return);
             }
             // Set speed
-            uniwill_wmi_ec_read(0x04, 0x18, &reg_read_return);
-            uniwill_wmi_ec_write(0x04, 0x18, argument & 0xff, reg_read_return.bytes.data_high, &reg_write_return);
+            uw_ec_write_addr(0x04, 0x18, argument & 0xff, 0x00, &reg_write_return);
+            break;
+        case W_UW_FANSPEED2:
+            // Get fan speed argument
+            copy_result = copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
+
+            // Check current mode
+            uw_ec_read_addr(0x51, 0x07, &reg_read_return);
+            if (reg_read_return.bytes.data_low != 0x40) {
+                // If not "full fan mode" (ie. 0x40) switch to it (required for fancontrol)
+                uw_ec_write_addr(0x51, 0x07, 0x40, 0x00, &reg_write_return);
+            }
+            // Set speed
+            uw_ec_write_addr(0x09, 0x18, argument & 0xff, 0x00, &reg_write_return);
             break;
         case W_UW_MODE:
             copy_result = copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
-            uniwill_wmi_ec_read(0x51, 0x07, &reg_read_return);
-            uniwill_wmi_ec_write(0x51, 0x07, argument & 0xff, reg_read_return.bytes.data_high, &reg_write_return);
+            uw_ec_write_addr(0x51, 0x07, argument & 0xff, 0x00, &reg_write_return);
             break;
         case W_UW_MODE_ENABLE:
+            // Note: Is for the moment set and cleared on init/exit of module (uniwill mode)
+            /*
             copy_result = copy_from_user(&argument, (int32_t *) arg, sizeof(argument));
-            uniwill_wmi_ec_read(0x41, 0x07, &reg_read_return);
-            uniwill_wmi_ec_write(0x41, 0x07, argument & 0x01, reg_read_return.bytes.data_high, &reg_write_return);
+            uw_ec_write_addr(0x41, 0x07, argument & 0x01, 0x00, &reg_write_return);
+            */
             break;
 #ifdef DEBUG
         case W_TF_BC:
             copy_result = copy_from_user(&uw_arg, (void *) arg, sizeof(uw_arg));
-            result = uniwill_wmi_ec_evaluate(uw_arg[0], uw_arg[1], uw_arg[2], uw_arg[3], 0, uw_result);
-            copy_result = copy_to_user((void *) arg, &uw_result, sizeof(uw_result));
-            reg_write_return.dword = uw_result[0];
+            if (uniwill_ec_direct) {
+                result = uw_ec_write_addr_direct(uw_arg[0], uw_arg[1], uw_arg[2], uw_arg[3], &reg_write_return);
+                copy_result = copy_to_user((void *) arg, &reg_write_return.dword, sizeof(reg_write_return.dword));
+            } else {
+                result = uw_wmi_ec_evaluate(uw_arg[0], uw_arg[1], uw_arg[2], uw_arg[3], 0, uw_result);
+                copy_result = copy_to_user((void *) arg, &uw_result, sizeof(uw_result));
+                reg_write_return.dword = uw_result[0];
+            }
             /*pr_info("data_high %0#2x\n", reg_write_return.bytes.data_high);
             pr_info("data_low %0#2x\n", reg_write_return.bytes.data_low);
             pr_info("addr_high %0#2x\n", reg_write_return.bytes.addr_high);
@@ -266,6 +299,10 @@ static int __init tuxedo_cc_wmi_init(void)
     id_check_clevo = clevo_identify() == 0 ? 1 : 0;
     id_check_uniwill = uniwill_identify() == 0 ? 1 : 0;
 
+    if (id_check_uniwill == 1) {
+        uniwill_init();
+    }
+
 #ifdef DEBUG
     if (id_check_clevo == 0 && id_check_uniwill == 0) {
         pr_debug("No matching hardware found\n");
@@ -292,6 +329,10 @@ static int __init tuxedo_cc_wmi_init(void)
 
 static void __exit tuxedo_cc_wmi_exit(void)
 {
+    if (id_check_uniwill == 1) {
+        uniwill_exit();
+    }
+
     device_destroy(tuxedo_cc_wmi_device_class, tuxedo_cc_wmi_device_handle);
     class_destroy(tuxedo_cc_wmi_device_class);
     cdev_del(&tuxedo_cc_wmi_cdev);
