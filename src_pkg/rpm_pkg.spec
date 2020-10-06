@@ -117,6 +117,8 @@ exit 0
 
 
 %changelog
+* Fri Sep 25 2020 C Sandberg <tux@tuxedocomputers.com> 0.1.7-1
+- Added device support, uw multiple fans
 * Fri Aug 28 2020 C Sandberg <tux@tuxedocomputers.com> 0.1.6-1
 - Fixed webcam status issue on some cl devices
 * Mon Aug 10 2020 C Sandberg <tux@tuxedocomputers.com> 0.1.5-1
