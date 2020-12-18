@@ -1,5 +1,8 @@
 # TUXEDO WMI module
 
+## Note: This project has moved, the module is renamed to `tuxedo-io` and is included in the `tuxedo-keyboard` project
+https://github.com/tuxedocomputers/tuxedo-keyboard
+
 ## Project structure
 ```
 tuxedo-cc-wmi
